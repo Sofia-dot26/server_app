@@ -1,15 +1,16 @@
 using Microsoft.AspNetCore.Http;
 using ServerApp;
+using System.Dynamic;
 
 namespace Reports
 {
     public interface IReportService
     {
-        string GenerateConsumptionReport(DateTime? start, DateTime? end, int authorId, bool previewOnly); // Конец метода GenerateConsumptionReport
-        string GenerateAverageConsumptionReport(DateTime start, DateTime end, int authorId, bool previewOnly); // Конец метода GenerateAverageConsumptionReport
-        string GenerateRemainingMaterialsReport(int authorId, bool previewOnly); // Конец метода GenerateRemainingMaterialsReport
-        string GenerateSuppliesReport(int authorId, bool previewOnly); // Конец метода GenerateSuppliesReport
-        List<Report> GetAllReports(); // Конец метода GetAllReports
+        string GenerateConsumptionReport(DateTime? start, DateTime? end, int authorId, bool previewOnly); 
+        string GenerateAverageConsumptionReport(DateTime start, DateTime end, int authorId, bool previewOnly); 
+        string GenerateRemainingMaterialsReport(int authorId, bool previewOnly); 
+        string GenerateSuppliesReport(int authorId, bool previewOnly); 
+        List<Report> GetAllReports(); 
     }
 
     public class ReportService : IReportService
@@ -46,7 +47,7 @@ namespace Reports
             return content;
         }
 
-        public string GenerateAverageConsumptionReport(DateTime start, DateTime end, int authorId, bool previewOnly) // Конец метода GenerateAverageConsumptionReport
+        public string GenerateAverageConsumptionReport(DateTime start, DateTime end, int authorId, bool previewOnly) 
         {
             string title = "Отчёт по среднему расходу материалов";
             string period = $"{start:yyyy-MM-dd} - {end:yyyy-MM-dd}";
@@ -91,10 +92,10 @@ namespace Reports
             }
 
             return content;
-        } // Конец метода GenerateAverageConsumptionReport
+        } 
 
 
-        public string GenerateRemainingMaterialsReport(int authorId, bool previewOnly) // Конец метода GenerateRemainingMaterialsReport
+        public string GenerateRemainingMaterialsReport(int authorId, bool previewOnly) 
         {
             string title = "Отчёт по остаткам материалов";
             string header = "Название материала\tСостояние";
@@ -124,7 +125,7 @@ namespace Reports
             return content;
         }
 
-        public string GenerateSuppliesReport(int authorId, bool previewOnly) // Конец метода GenerateSuppliesReport
+        public string GenerateSuppliesReport(int authorId, bool previewOnly) 
         {
             string title = "Отчёт по поставкам";
             string header = "№\tДата поставки\tНазвание поставщика\tНазвание материала\tКоличество\tЕдиница измерения";
@@ -149,7 +150,7 @@ namespace Reports
             return content;
         }
 
-        private void SaveReport(string reportType, DateTime? start, DateTime? end, string content, int authorId) // Конец метода SaveReport
+        private void SaveReport(string reportType, DateTime? start, DateTime? end, string content, int authorId) 
         {
             string sql = "INSERT INTO Reports (report_type, period_start, period_end, content) VALUES (@report_type, @period_start, @period_end, @content)";
             var parameters = new Dictionary<string, object>
@@ -163,7 +164,7 @@ namespace Reports
             DatabaseHelper.ExecuteNonQuery(sql, parameters);
         }
 
-        public List<Report> GetAllReports() // Конец метода GetAllReports
+        public List<Report> GetAllReports() 
         {
             string sql = "SELECT * FROM Reports";
             var results = DatabaseHelper.ExecuteQuery(sql);
@@ -176,9 +177,9 @@ namespace Reports
                 period_end = row["period_end"] != DBNull.Value ? Convert.ToDateTime(row["period_end"]) : (DateTime?)null,
                 content = row["content"]?.ToString()
             }).ToList();
-        } // Конец метода GetAllReports
+        } 
 
-    } // Конец класса ReportService
+    } 
 
     public class ReportController: IController
     {
@@ -189,7 +190,7 @@ namespace Reports
             _reportService = reportService;
         }
 
-        public object Handle(HttpContext context, string? method) // Конец метода Handle
+        public object Handle(HttpContext context, string? method) 
         {
             dynamic result;
             
@@ -238,15 +239,45 @@ namespace Reports
             }
 
             return result;
-        } // Конец метода Handle
-    } // Конец класса ReportController
+        } 
+        public static dynamic GetInterface()
+        {
+            dynamic interfaceData = new ExpandoObject();
+
+            interfaceData.Reports = new
+            {
+                description = "Представление для просмотра отчетов",
+                controller = "reports",
+                header = new
+                {
+                    id = "ID",
+                    type = "Тип отчёта",
+                    from = "Дата, с",
+                    to = "Дата, по",
+                    summary = "Сводка"
+                },
+                add = new
+                {
+                    type = new { text = "Тип отчёта", type = "text" },
+                    from = new { text = "Дата, с", type = "date" },
+                    to = new { text = "Дата, по", type = "date" },
+                    summary = new { text = "Сводка", type = "text" }
+                },
+                noedit = true,
+                nodelete = true,
+                title = "отчёт",
+                title_main = "Отчёты"
+            };
+            return interfaceData;
+        }
+    } 
 
     public class Report
     {
-        public int id;
-        public string? report_type;
-        public DateTime? period_start;
-        public DateTime? period_end;
-        public string? content;
+        public int id { get; set; }
+        public string? report_type {  get; set; }
+        public DateTime? period_start {  get; set; }
+        public DateTime? period_end {  get; set; }
+        public string? content {  get; set; }
     }
 }

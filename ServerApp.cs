@@ -19,6 +19,7 @@ namespace ServerApp
     public interface IController
     {
         dynamic Handle(HttpContext context, string? method);
+        static dynamic GetInterface()=>throw new NotImplementedException();
     }
 
     public class ServerApp
@@ -51,7 +52,7 @@ namespace ServerApp
             ServerStatus.Status = 0; // Неизвестен
             // Запуск API-сервера
             var host = Host.CreateDefaultBuilder(args)
-                //.ConfigureLogging(logging => logging.ClearProviders()) // Отключу лог перед сдачей, чтоб не мельтешил
+        
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseUrls($"http://localhost:{config.ApiPort}");
@@ -87,8 +88,8 @@ namespace ServerApp
                                 {
                                     "auth" or "health" => true,
                                     "users" => user?.isAdmin() ?? false,
-                                    "materials" or "spend" or "supplies" => user?.isAccounter() ?? false,
-                                    "suppliers" or "equipment" => user?.isDirector() ?? false,
+                                    "materials" or "spend" or "supplies" or "suppliers" or "equipment" => user?.isAccounter() ?? false || (user?.isAccounter() ?? false),
+                                    "reports" => user?.id != null,
                                     _ => false
                                 };
                                 
@@ -146,9 +147,6 @@ namespace ServerApp
                                         result = new { message = "Версия API не поддерживается. Используйте v1." };
                                         break;
                                 }
-                                // Если у нас запрос обрабатывается через стандартный контроллерный интерфейс,
-                                //   можем просто его обработать и получить свой результат.
-                                //   На самом деле, это удобно и здорово повышает читаемость кода.
                                 if (controllerObject != null)
                                 {
                                     if (accessAllowed)
@@ -206,7 +204,7 @@ namespace ServerApp
                 }
             }
         }
-    } // Конец класса ServerApp
+    } 
 
     public class ServerResponse
     {
@@ -214,7 +212,7 @@ namespace ServerApp
         public string? Message { get; set; }
 
         public dynamic? Data { get; set; }
-    } // Конец класса ServerResponse
+    } 
 
     public static class ServerStatus
     {
@@ -226,4 +224,4 @@ namespace ServerApp
             set => _status = value;
         }
     }
-} // Конец пространства имён ServerApp
+} 
