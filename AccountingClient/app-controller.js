@@ -1,13 +1,13 @@
 const notification = document.getElementById('notification');
 const roles = {
     admin: 'Администратор',
-    dir: 'Начальник',
-    acc: 'Учетчик',
+    dir: 'Начальник подразделения',
+    acc: 'Учётчик',
 };
 const roles_rp = {
     admin: 'администратора',
     dir: 'начальника подразделения',
-    acc: 'учётчик',
+    acc: 'учётчика',
 };
 
 //Уведомления 

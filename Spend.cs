@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ServerApp;
+using System.Dynamic;
 
 namespace Spend
 {
@@ -11,7 +12,7 @@ namespace Spend
         bool DeleteSpend(int id);
         Spend? GetSpend(int id);
         List<Spend> GetAllSpentMaterials();
-    } 
+    }
 
     public class SpendService : ISpentMaterialService
     {
@@ -24,7 +25,7 @@ namespace Spend
                 { "@date", date }
             };
             return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        } 
+        }
 
         public bool UpdateSpend(int id, int materialId, int quantity, DateTime date)
         {
@@ -133,11 +134,7 @@ namespace Spend
 
         public object GetAllSpentMaterials()
         {
-            var Spent = _SpendService.GetAllSpentMaterials();
-            return new {
-                message = Spent.Count == 0 ? "Список пуст" : "Список трат получен",
-                data = Spent
-            };
+            return _SpendService.GetAllSpentMaterials();
         }
 
         public object Handle(HttpContext context, string? method)
@@ -181,15 +178,44 @@ namespace Spend
             }
             return result;
         } 
+        public static dynamic GetInterface()
+        {
+            dynamic interfaceData = new ExpandoObject();
+
+            interfaceData.Spends = new
+            {
+                description = "Представление для управления тратами",
+                controller = "spend",
+                header = new
+                {
+                    id = "ID",
+                    date = "Дата",
+                    material_name = "Материал",
+                    quantity = "Количество",
+                    unit = "Единица"
+                },
+                add = new
+                {
+                    date = new { text = "Дата", type = "date" },
+                    material_name = new { text = "Материал", type = "text" },
+                    quantity = new { text = "Количество", type = "number" },
+                    unit = new { text = "Единица", type = "text" }
+                },
+                title = "трату",
+                title_main = "Траты"
+            };
+            return interfaceData;
+        } 
+
     } 
 
 
     public class Spend
     {
-        public int id;
-        public int materialId;
-        public int supplierId;
-        public int quantity;
-        public DateTime date;
+        public int id { get; set; }
+        public int materialId { get; set; }
+        public int supplierId { get; set; }
+        public int quantity { get; set; }
+        public DateTime date { get; set; }
     }
 }

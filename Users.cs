@@ -43,7 +43,7 @@ namespace Users
                 { "@role", role }
             };
             var result = error == "" ? DatabaseHelper.ExecuteQuery(sql, parameters) : null;
-            
+
             return result?.Count > 0 ? Convert.ToInt32(result[0]["id"]) : null;
         }
 
@@ -63,7 +63,7 @@ namespace Users
             }
 
             // Проверяем на существование пользователей с одинаковым логином или ID
-           
+
 
             // Генерируем ошибку, если пользователи не найдены
             error = (user_byid == null ? $"Пользователь с ID {id} не существует. " : "") +
@@ -131,7 +131,7 @@ namespace Users
         }
         public User? GetUser(string login)
         {
-            string sql = "SELECT * FROM Users WHERE login = @login";
+            string sql = "SELECT * FROM Users WHERE LOWER(login) = LOWER(@login);";
             var parameters = new Dictionary<string, object> {
                 { "@login", login }
             };
@@ -173,7 +173,7 @@ namespace Users
         {
             bool success = _userService.UpdateUser(id, login, password, role, out string error);
             return new { success, message = success ? "Пользователь обновлён." : "Ошибка при обновлении пользователя." };
-               
+
         }
 
         public object Delete(int id)
@@ -251,17 +251,16 @@ namespace Users
                         values = new
                         {
                             admin = "Администратор",
-                            dir = "Директор",
-                            acc = "Учетчик"
+                            dir = "Начальник подразделения",
+                            acc = "Учётчик"
                         }
                     },
-
                 },
                 title = "пользователя",
                 title_main = "Пользователи"
             };
             return interfaceData;
-        }
+        } 
     } 
 
     public class User

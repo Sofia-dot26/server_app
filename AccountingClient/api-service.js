@@ -10,9 +10,9 @@ const SUPPLIERS_CONTROLLER = "suppliers";
 
 const SUPPLIES_CONTROLLER = "supplies";
 
-const SPEND_CONTROLLER = "spend";
+const SPENDS_CONTROLLER = "spend";
 
-const EQUIPMENT_CONTROLLER = "equipments";
+const EQUIPMENT_CONTROLLER = "equipment";
 
 const REPORTS_CONTROLLER = "reports";
 
@@ -56,8 +56,8 @@ class ApiService {
         this.baseUrl = baseUrl;
     }
 
-    async apiCall(controller, metod, params = {}) {
-        const url = new URL(`${this.baseUrl}/api/v1/${controller}/${metod}`);
+    async apiCall(controller, method, params = {}) {
+        const url = new URL(`${this.baseUrl}/api/v1/${controller}/${method}`);
         Object.entries(params).forEach(([key, value]) => url.searchParams.append(key, value));
 
         const headers = {};
@@ -80,7 +80,7 @@ class ApiService {
             }
             return await response.text();
         } catch (err) {
-            showNotification(`Ошибка звапроса: ${err.mesage}`);
+            showNotification(`Ошибка запроса: ${err.message}`);
             throw err;
         }
     }
@@ -105,7 +105,7 @@ class ApiService {
     deleteUser(id) {
         return this.apiCall(USERS_CONTROLLER, METHOD_DELETE, { id });
     }
-    listUser() {
+    listUsers() {
         return this.apiCall(USERS_CONTROLLER, METHOD_LIST);
     }
     // Методы materials

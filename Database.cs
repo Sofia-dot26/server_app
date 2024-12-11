@@ -7,20 +7,20 @@ namespace ServerApp
     public class DatabaseSchema
     {
         public List<TableSchema>? Tables { get; set; }
-    } 
+    }
 
     public class TableSchema
     {
         public string? Name { get; set; }
         public List<ColumnSchema>? Columns { get; set; }
-    } 
+    }
 
     public class ColumnSchema
     {
         public string? Name { get; set; }
         public string? Type { get; set; }
         public bool PrimaryKey { get; set; }
-    } 
+    }
 
     public static class DatabaseHelper
     {
@@ -40,7 +40,7 @@ namespace ServerApp
                 Console.WriteLine($"Ошибка выполнения SQL: {ex.Message}");
                 return false;
             }
-        } 
+        }
 
         public static List<Dictionary<string, object?>> ExecuteQuery(string sql, Dictionary<string, object>? parameters = null)
         {
@@ -73,13 +73,13 @@ namespace ServerApp
             }
 
             return results;
-        } 
+        }
 
         private static string GetConnectionString(string? database = null)
         {
             var config = ServerApp.config;
             return config == null ? "" : $"Host={config.PostgresHost};Port={config.PostgresPort};Username={config.PostgresUser};Password={config.PostgresPassword};Database={database ?? config.Database}";
-        } 
+        }
 
         private static void AddParameters(NpgsqlCommand command, Dictionary<string, object>? parameters)
         {
@@ -90,7 +90,7 @@ namespace ServerApp
                     command.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
                 }
             }
-        } 
+        }
 
         public static bool TestDatabaseConnection()
         {
@@ -113,9 +113,9 @@ namespace ServerApp
                 }
             }
             return result;
-        } 
+        }
 
-    
+
         public static bool RunMigration()
         {
             Config? config = ServerApp.config;
@@ -163,7 +163,7 @@ namespace ServerApp
                     }
                 }
                 // Миграция нужна
-                if (needMigration) 
+                if (needMigration)
                 {
                     // Шаг 2: Подключение к созданной базе данных
                     string connectionStringAccounting = GetConnectionString(config.Database); ;
@@ -188,7 +188,7 @@ namespace ServerApp
                 Console.WriteLine($"Ошибка выполнения миграции: {ex.Message}");
                 return false;
             }
-        }
+        } 
 
 
     } 

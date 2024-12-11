@@ -77,7 +77,7 @@ namespace Auth
             return DatabaseHelper.ExecuteNonQuery(sql, null);
         }
 
-        public Session? GetSession(int sessionId) 
+        public Session? GetSession(int sessionId)
         {
             string sql = "SELECT * FROM Sessions WHERE id = @id";
             var parameters = new Dictionary<string, object> { { "@id", sessionId } };
@@ -109,7 +109,7 @@ namespace Auth
 
         public object Login(string login, string password, string ip = "127.0.0.1")
         {
-            
+
             User? user;
             int? error = null;
             Session? session = _authService.Login(login, password, out user, out error, ip);
@@ -122,22 +122,27 @@ namespace Auth
                     : (
                         password == ""
                             ? "Пароль не передан. Укажите его параметром password"
-                           : (session_id == -1 ? $"Пользователь {login} не существует" : (error == -2 ? "Неверный пароль" : $"Добро пожаловать, {name}!"))
+                           : (error == -1 ? $"Пользователь \"{login}\" не существует" : (error == -2 ? "Неверный пароль" : $"Добро пожаловать, {name}!"))
                         ),
                 user,
                 session,
                 session_id,
                 valid = session?.isValid() ?? false,
                 user_role = user?.role,
-                allowed_controllers = user?.role 
-                switch
+                allowed_controllers = user?.role switch
                 {
                     "admin" => new[] { "auth", "health", "reports", "users" },
                     "acc" => new[] { "auth", "health", "reports", "materials", "spend", "supplies" },
                     "dir" => new[] { "auth", "health", "reports", "suppliers", "equipment" },
                     _ => new[] { "auth", "health" }
                 },
-              
+                allowed_views = user?.role switch
+                {
+                    "admin" => new[] { "Reports", "Users" },
+                    "acc" => new[] { "Reports", "Materials", "Spends", "Supplies" },
+                    "dir" => new[] { "Reports", "Suppliers", "Equipment" },
+                    _ => new[] { "Login" }
+                }
             };
         }
 
@@ -217,7 +222,7 @@ namespace Auth
                 case "state":
                     Session? session = this.GetSession(GetSessionId(context) ?? 0);
                     User? user = session == null ? null : (new UserController(new UserService())).Get(session.user_id);
-                    result = new 
+                    result = new
                     {
                         user,
                         session,
@@ -274,7 +279,7 @@ namespace Auth
         {
             return this.expires_at > DateTime.Now;
         }
-    }
+    } 
 
-    
+
 }

@@ -12,7 +12,7 @@ namespace Equipment
         bool DeleteEquipment(int id);
         Equipment? GetEquipment(int id);
         List<Equipment> GetAllEquipment();
-    } 
+    }
 
     public class EquipmentService : IEquipmentService
     {
@@ -24,7 +24,7 @@ namespace Equipment
                 { "@description", description }
             };
             return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        } 
+        }
 
         public bool UpdateEquipment(int id, string name, string description)
         {
@@ -35,14 +35,14 @@ namespace Equipment
                 { "@description", description }
             };
             return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        } 
+        }
 
         public bool DeleteEquipment(int id)
         {
             string sql = "DELETE FROM Equipment WHERE id = @id";
             var parameters = new Dictionary<string, object> { { "@id", id } };
             return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        } 
+        }
 
         public Equipment? GetEquipment(int id)
         {
@@ -56,7 +56,7 @@ namespace Equipment
                 name = Convert.ToString(row["name"]),
                 description = Convert.ToString(row["description"]),
             } : null; // ≈сли запрос не вернул строк, возвращаем null
-        } 
+        }
 
         public List<Equipment> GetAllEquipment()
         {
@@ -70,7 +70,7 @@ namespace Equipment
             }
 
             return equipment;
-        }
+        } 
     }
 
     public class EquipmentController : IController
@@ -163,7 +163,7 @@ namespace Equipment
             return interfaceData;
         } 
 
-    } 
+    }
 
 
     public class Equipment
@@ -171,7 +171,7 @@ namespace Equipment
         public int id { get; set; }
         public string? name { get; set; }
         public string? description { get; set; }
-        public static Equipment FromDictionary(Dictionary<string, object> row)
+        public static Equipment FromDictionary(Dictionary<string, object?> row)
         {
             return new Equipment
             {

@@ -12,7 +12,7 @@ namespace Materials
         bool DeleteMaterial(int id);
         Material? GetMaterial(int id);
         List<Material> GetAllMaterials();
-    } 
+    }
 
     // Сервис для материалов
     public class MaterialService : IMaterialService
@@ -77,7 +77,7 @@ namespace Materials
 
             return materials;
         }
-    } 
+    }
 
 
     public class MaterialController : IController
@@ -134,13 +134,8 @@ namespace Materials
 
         public object GetAllMaterials()
         {
-            var materials = _materialService.GetAllMaterials();
-            return new
-            {
-                success = true,
-                data = materials
-            };
-        } 
+            return _materialService.GetAllMaterials();
+        }
 
         public object Handle(HttpContext context, string? method)
         {
@@ -205,8 +200,8 @@ namespace Materials
                 title_main = "Материалы"
             };
             return interfaceData;
-        }
-    } 
+        } 
+    }
 
     public class Material
     {

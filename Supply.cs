@@ -13,7 +13,7 @@ namespace Supply
         bool DeleteSupply(int id);
         Supply? GetSupply(int id);
         List<Supply> GetAllSupplies();
-    }
+    } 
 
     public class SupplyService : ISupplyService
     {
@@ -68,27 +68,28 @@ namespace Supply
         public List<Supply> GetAllSupplies()
         {
             string sql = @"
-                SELECT s.*,
-                    COALESCE(m.name '#NULL' AS material_name,
-                    COALESCE(sp.name '#NULL' AS supplier_name,
-                FROM 
-                    Supplies s
-                LEFT JOIN 
-                    Materials m ON s.material_id = m.id
-                LEFT JOIN
-                    Suppliers sp ON s.supplier_id = sp.id";
+        SELECT s.*,
+            COALESCE(m.name, '#NULL') AS material_name,
+            COALESCE(sp.name, '#NULL') AS supplier_name
+        FROM 
+            Supplies s
+        LEFT JOIN 
+            Materials m ON s.material_id = m.id
+        LEFT JOIN 
+            Suppliers sp ON s.supplier_id = sp.id";
 
             var results = DatabaseHelper.ExecuteQuery(sql);
 
             var supplies = new List<Supply>();
             foreach (var row in results)
             {
+                // Заполняем объект Supply, включая дополнительные поля
                 supplies.Add(Supply.FromDictionary(row));
             }
 
             return supplies;
         } 
-    }
+    } 
 
     public class SupplyController : IController
     {
@@ -107,17 +108,17 @@ namespace Supply
                 success,
                 message = success ? "Поставка добавлена." : "Ошибка при добавлении поставки."
             };
-        }
+        } 
 
-        public object UpdateSupply(int id, int materialId, int supplierId, int quantity, DateTime date)
+        public object UpdateSupply(int id, int material_id, int supplier_id, int quantity, DateTime date)
         {
-            bool success = _supplyService.UpdateSupply(id, materialId, supplierId, quantity, date);
+            bool success = _supplyService.UpdateSupply(id, material_id, supplier_id, quantity, date);
             return new
             {
                 success,
                 message = success ? "Поставка обновлена." : "Ошибка при обновлении поставки."
             };
-        }
+        } 
 
         public object DeleteSupply(int id)
         {
@@ -127,7 +128,7 @@ namespace Supply
                 success,
                 message = success ? "Поставка удалена." : "Ошибка при удалении поставки."
             };
-        }
+        } 
 
 
         public Supply? GetSupply(int id)
@@ -142,7 +143,7 @@ namespace Supply
 
         public object Handle(HttpContext context, string? method)
         {
-            dynamic result;
+            dynamic? result;
             switch (method?.ToLower())
             {
                 case "add":
@@ -183,12 +184,12 @@ namespace Supply
                     break;
             }
             return result;
-        }
-        public static dynamic GetInteface()
+        } 
+        public static dynamic GetInterface()
         {
             dynamic interfaceData = new ExpandoObject();
 
-            interfaceData.Supplies = new 
+            interfaceData.Supplies = new
             {
                 description = "Представление для управления поставками",
                 controller = "supplies",
@@ -213,8 +214,8 @@ namespace Supply
                 title_main = "Поставки"
             };
             return interfaceData;
-        }
-    }
+        } 
+    } 
 
     public class Supply
     {
@@ -225,7 +226,7 @@ namespace Supply
         public string? material_name { get; set; }
         public string? supplier_name { get; set; }
         public DateTime date { get; set; }
-        public static Supply FromDictionary(Dictionary<string, object?> row)
+        public static Supply FromDictionary(Dictionary<string, object> row)
         {
             return new Supply
             {
@@ -235,7 +236,7 @@ namespace Supply
                 quantity = Convert.ToInt32(row["quantity"]),
                 date = Convert.ToDateTime(row["date"]),
                 material_name = row.ContainsKey("material_name") ? row["material_name"].ToString() : "",
-                supplier_name = row.ContainsKey("supplier_name") ? row["supplier_name"].ToString() : ""  
+                supplier_name = row.ContainsKey("supplier_name") ? row["supplier_name"].ToString() : ""
             };
         }
     }

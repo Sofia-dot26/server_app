@@ -1,6 +1,8 @@
+using Auth;
 using Microsoft.AspNetCore.Http;
 using ServerApp;
 using System.Dynamic;
+using Users;
 
 namespace Reports
 {
@@ -15,7 +17,7 @@ namespace Reports
 
     public class ReportService : IReportService
     {
-        public string GenerateConsumptionReport(DateTime? start, DateTime? end, int authorId, bool previewOnly) // Конец метода GenerateConsumptionReport
+        public string GenerateConsumptionReport(DateTime? start, DateTime? end, int authorId, bool previewOnly)
         {
             string title = "Отчёт по расходу материалов";
             string period = $"{start?.ToString("yyyy-MM-dd") ?? "с начала учёта"} - {end?.ToString("yyyy-MM-dd") ?? "по конец учёта"}";
@@ -92,7 +94,7 @@ namespace Reports
             }
 
             return content;
-        } 
+        }
 
 
         public string GenerateRemainingMaterialsReport(int authorId, bool previewOnly) 
@@ -179,9 +181,9 @@ namespace Reports
             }).ToList();
         } 
 
-    } 
+    }
 
-    public class ReportController: IController
+    public class ReportController : IController
     {
         private readonly IReportService _reportService;
 
@@ -193,13 +195,17 @@ namespace Reports
         public object Handle(HttpContext context, string? method) 
         {
             dynamic result;
-            
+
+            AuthController authController = new(new AuthService());
+            Session? session = authController.GetSession(AuthController.GetSessionId(context) ?? 0);
+            User? user = session == null ? null : (new UserController(new UserService())).Get(session.user_id);
+            int authorId = user?.id ?? 0;
+
             switch (method?.ToLower())
             {
                 case "consumption":
                     var start = context.Request.Query.ContainsKey("start") ? DateTime.Parse(context.Request.Query["start"]) : (DateTime?)null;
                     var end = context.Request.Query.ContainsKey("end") ? DateTime.Parse(context.Request.Query["end"]) : (DateTime?)null;
-                    var authorId = int.Parse(context.Request.Query["author_id"]);
                     var previewOnly = context.Request.Query.ContainsKey("preview") && bool.Parse(context.Request.Query["preview"]);
 
                     result = _reportService.GenerateConsumptionReport(start, end, authorId, previewOnly);
@@ -208,21 +214,18 @@ namespace Reports
                 case "average_consumption":
                     var startMandatory = DateTime.Parse(context.Request.Query["start"]);
                     var endMandatory = DateTime.Parse(context.Request.Query["end"]);
-                    authorId = int.Parse(context.Request.Query["author_id"]);
                     previewOnly = context.Request.Query.ContainsKey("preview") && bool.Parse(context.Request.Query["preview"]);
 
                     result = _reportService.GenerateAverageConsumptionReport(startMandatory, endMandatory, authorId, previewOnly);
                     break;
 
                 case "remaining":
-                    authorId = int.Parse(context.Request.Query["author_id"]);
                     previewOnly = context.Request.Query.ContainsKey("preview") && bool.Parse(context.Request.Query["preview"]);
 
                     result = _reportService.GenerateRemainingMaterialsReport(authorId, previewOnly);
                     break;
 
                 case "supplies":
-                    authorId = int.Parse(context.Request.Query["author_id"]);
                     previewOnly = context.Request.Query.ContainsKey("preview") && bool.Parse(context.Request.Query["preview"]);
 
                     result = _reportService.GenerateSuppliesReport(authorId, previewOnly);
@@ -269,8 +272,8 @@ namespace Reports
                 title_main = "Отчёты"
             };
             return interfaceData;
-        }
-    } 
+        } 
+    }
 
     public class Report
     {

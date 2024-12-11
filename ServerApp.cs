@@ -12,6 +12,10 @@ using Spend;
 using Equipment;
 using Reports;
 using Auth;
+using System.Text.Json.Serialization;
+using System.Diagnostics;
+using System.Dynamic;
+using System.Reflection;
 
 namespace ServerApp
 {
@@ -52,7 +56,7 @@ namespace ServerApp
             ServerStatus.Status = 0; // Неизвестен
             // Запуск API-сервера
             var host = Host.CreateDefaultBuilder(args)
-        
+                //.ConfigureLogging(logging => logging.ClearProviders()) 
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseUrls($"http://localhost:{config.ApiPort}");
@@ -74,7 +78,7 @@ namespace ServerApp
                                 UserController userController = new(new UserService());
 
                                 int? session_id = AuthController.GetSessionId(context);
-                                
+
                                 if (session_id != null)
                                 {
                                     session = authController.GetSession(session_id ?? 0);
@@ -86,13 +90,16 @@ namespace ServerApp
 
                                 bool accessAllowed = controller switch
                                 {
-                                    "auth" or "health" => true,
+                                    "auth" or "health" or "system" => true,
                                     "users" => user?.isAdmin() ?? false,
-                                    "materials" or "spend" or "supplies" or "suppliers" or "equipment" => user?.isAccounter() ?? false || (user?.isAccounter() ?? false),
+                                    //"materials" or "spend" or "supplies" => (user?.isDirector() ?? false) || (user?.isAccounter() ?? false),
+                                    "materials" or "spend" or "supplies" or "suppliers" or "equipment" =>
+                                      (user?.isDirector() ?? false) || (user?.isAccounter() ?? false),
+                                    //"suppliers" or "equipment" => (user?.isDirector() ?? false) || (user?.isAccounter() ?? false),
                                     "reports" => user?.id != null,
                                     _ => false
                                 };
-                                
+
 
                                 switch (version)
                                 {
@@ -135,6 +142,12 @@ namespace ServerApp
                                                     }
                                                 }
                                                 break;
+                                            case "system":
+                                                if (method == "get-interface")
+                                                {
+                                                    result = InterfaceAggregator.GetFullInterface();
+                                                }
+                                                break;
                                             // TODO: добавить остальные контроллеры
                                             default:
                                                 context.Response.StatusCode = 404;
@@ -160,11 +173,56 @@ namespace ServerApp
                                             message = $"Ваша роль \"{user?.role ?? "Не авторизован"}\" не позволяет использовать контроллер \"{controller}\"."
                                         };
                                     }
-                                    
+
                                 }
 
-                                string resultText = JsonSerializer.Serialize(result);
+                                var options = new JsonSerializerOptions
+                                {
+                                    DefaultIgnoreCondition = JsonIgnoreCondition.Never, // Включаем свойства с null значениями
+                                    WriteIndented = false // Если нужен компактный JSON
+                                };
+
+                                string resultText = JsonSerializer.Serialize(result, options);
                                 await context.Response.WriteAsync(resultText);
+                            });
+
+                            endpoints.MapMethods("/{**filePath}", new[] { "GET" }, async context =>
+                            {
+                                string filePath = context.Request.RouteValues["filePath"]?.ToString() ?? "";
+                                string baseDirectory = Path.Combine(AppContext.BaseDirectory, "AccountingClient");
+                                string fullPath = Path.Combine(baseDirectory, filePath);
+
+                                if (!File.Exists(fullPath))
+                                {
+                                    context.Response.StatusCode = 404;
+                                    await context.Response.WriteAsync("404 Not Found");
+                                    return;
+                                }
+
+                                // Определение Content-Type
+                                string extension = Path.GetExtension(fullPath).ToLowerInvariant();
+                                string contentType = extension switch
+                                {
+                                    ".html" or ".htm" => "text/html",
+                                    ".js" => "application/javascript",
+                                    ".css" => "text/css",
+                                    ".jpg" or ".jpeg" => "image/jpeg",
+                                    ".png" => "image/png",
+                                    ".gif" => "image/gif",
+                                    _ => "application/octet-stream"
+                                };
+
+                                context.Response.ContentType = contentType;
+
+                                try
+                                {
+                                    await context.Response.SendFileAsync(fullPath); // Отправляем файл
+                                }
+                                catch (Exception ex)
+                                {
+                                    context.Response.StatusCode = 500;
+                                    await context.Response.WriteAsync($"500 Internal Server Error: {ex.Message}");
+                                }
                             });
                         });
                     });
@@ -182,9 +240,9 @@ namespace ServerApp
                 Console.WriteLine("Завершение работы сервера...");
                 return;
             }
-            
 
-            Console.WriteLine("Введите 'exit' или 'q', чтобы завершить сервер.");
+
+            Console.WriteLine("Введите 'exit' или 'q', чтобы завершить сервер, app для запуска браузера с клиентом.");
             bool run = true;
             while (run)
             {
@@ -201,10 +259,32 @@ namespace ServerApp
                         Console.WriteLine("Завершение работы сервера и выход...");
                         run = false;
                         break;
+                    case "app":
+                        string url = $"http://localhost:{config.ApiPort}/index.html";
+                        OpenBrowser(url);
+                        break;
+                    default:
+                        Console.WriteLine("Введите 'exit' или 'q', чтобы завершить сервер, app для запуска браузера с клиентом.");
+                        break;
                 }
             }
         }
-    } 
+        static void OpenBrowser(string url)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = url,
+                    UseShellExecute = true // Использует системный обработчик для открытия ссылки
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при открытии браузера: {ex.Message}");
+            }
+        }
+    }
 
     public class ServerResponse
     {
@@ -224,4 +304,50 @@ namespace ServerApp
             set => _status = value;
         }
     }
+
+    public static class InterfaceAggregator
+    {
+        private static readonly List<Type> Controllers = new()
+    {
+        typeof(UserController),
+        typeof(MaterialController),
+        typeof(SupplierController),
+        typeof(EquipmentController),
+        typeof(SupplyController),
+        typeof(SpendController),
+        typeof(ReportController)
+    };
+
+        public static dynamic GetFullInterface()
+        {
+            dynamic result = new ExpandoObject();
+            var controllers = new List<Type>
+            {
+                typeof(UserController),
+                typeof(MaterialController),
+                typeof(SupplierController),
+                typeof(EquipmentController),
+                typeof(SupplyController),
+                typeof(SpendController),
+                typeof(ReportController)
+            };
+
+            foreach (var controller in controllers)
+            {
+                var method = controller.GetMethod("GetInterface", BindingFlags.Static | BindingFlags.Public);
+                if (method != null)
+                {
+                    var controllerInterface = method.Invoke(null, null);
+                    foreach (var kv in (IDictionary<string, object>)controllerInterface)
+                    {
+                        ((IDictionary<string, object>)result)[kv.Key] = kv.Value;
+                    }
+                }
+            }
+
+            return result;
+        } 
+
+    }
+
 } 
