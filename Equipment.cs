@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using ServerApp;
 using Suppliers;
+using System.Dynamic;
 
 namespace Equipment
 {
@@ -11,7 +12,7 @@ namespace Equipment
         bool DeleteEquipment(int id);
         Equipment? GetEquipment(int id);
         List<Equipment> GetAllEquipment();
-    } // Конец интерфейса IEquipmentService
+    } 
 
     public class EquipmentService : IEquipmentService
     {
@@ -23,7 +24,7 @@ namespace Equipment
                 { "@description", description }
             };
             return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        } // Конец метода AddEquipment
+        } 
 
         public bool UpdateEquipment(int id, string name, string description)
         {
@@ -34,14 +35,14 @@ namespace Equipment
                 { "@description", description }
             };
             return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        } // Конец метода UpdateEquipment
+        } 
 
         public bool DeleteEquipment(int id)
         {
             string sql = "DELETE FROM Equipment WHERE id = @id";
             var parameters = new Dictionary<string, object> { { "@id", id } };
             return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        } // Конец метода DeleteEquipment
+        } 
 
         public Equipment? GetEquipment(int id)
         {
@@ -55,7 +56,7 @@ namespace Equipment
                 name = Convert.ToString(row["name"]),
                 description = Convert.ToString(row["description"]),
             } : null; // Если запрос не вернул строк, возвращаем null
-        } // Конец метода GetEquipment
+        } 
 
         public List<Equipment> GetAllEquipment()
         {
@@ -65,20 +66,16 @@ namespace Equipment
             var equipment = new List<Equipment>();
             foreach (var row in results)
             {
-                equipment.Add(new Equipment
-                {
-                    id = Convert.ToInt32(row["id"]),
-                    name = Convert.ToString(row["name"]),
-                    description = Convert.ToString(row["description"]),
-                });
+                equipment.Add(Equipment.FromDictionary(row));
             }
 
             return equipment;
-        } // Конец метода GetAllEquipment
-    } // Конец EquipmentService
+        } 
+    } 
 
     public class EquipmentController : IController
     {
+        public const string Controller = "equipment";
         private readonly IEquipmentService _equipmentService;
 
         public EquipmentController(IEquipmentService equipmentService)
@@ -86,18 +83,19 @@ namespace Equipment
             _equipmentService = equipmentService;
         }
 
-        public object Handle(HttpContext context, string? method) // Конец метода Handle
+        public object Handle(HttpContext context, string? method) 
         {
             dynamic result;
             switch (method?.ToLower())
             {
                 case "add":
-                    var name = context.Request.Query["name"];
-                    var description = context.Request.Query["description"];
+                    string name = context.Request.Query["name"];
+                    string description = context.Request.Query["description"];
+                    bool success = _equipmentService.AddEquipment(name, description);
                     result = new
                     {
-                        success = _equipmentService.AddEquipment(name, description),
-                        message = "Оборудование добавлено."
+                        success,
+                        message = success ? "Оборудование добавлено." : "Ошибка добавления"
                     };
                     break;
 
@@ -105,19 +103,21 @@ namespace Equipment
                     var id = int.Parse(context.Request.Query["id"]);
                     name = context.Request.Query["name"];
                     description = context.Request.Query["description"];
+                    success = _equipmentService.UpdateEquipment(id, name, description);
                     result = new
                     {
-                        success = _equipmentService.UpdateEquipment(id, name, description),
-                        message = "Оборудование обновлено."
+                        success,
+                        message = success ? "Оборудование обновлено." : "Ошибка редактирования"
                     };
                     break;
 
                 case "delete":
                     id = int.Parse(context.Request.Query["id"]);
+                    success = _equipmentService.DeleteEquipment(id);
                     result = new
                     {
-                        success = _equipmentService.DeleteEquipment(id),
-                        message = "Оборудование удалено."
+                        success,
+                        message = success ? "Оборудование удалено." : "Ошибка удаления"
                     };
                     break;
 
@@ -131,11 +131,7 @@ namespace Equipment
                     break;
 
                 case "list":
-                    result = new
-                    {
-                        data = _equipmentService.GetAllEquipment(),
-                        message = "Список оборудования."
-                    };
+                    result = _equipmentService.GetAllEquipment();
                     break;
 
                 default:
@@ -144,14 +140,49 @@ namespace Equipment
                     break;
             }
             return result;
-        } // Конец метода Handle
-    } // Конец EquipmentController
+        } 
+
+        public static dynamic GetInterface()
+        {
+            dynamic interfaceData = new ExpandoObject();
+
+            interfaceData.Equipment = new
+            {
+                description = "Представление для управления техникой",
+                controller = "equipment",
+                header = new
+                {
+                    id = "ID",
+                    name = "Название",
+                    description = "Описание"
+                },
+                add = new
+                {
+                    name = new { text = "Название", type = "text" },
+                    description = new { text = "Описание", type = "text" }
+                },
+                title = "технику",
+                title_main = "Техника"
+            };
+            return interfaceData;
+        } 
+
+    } 
 
 
     public class Equipment
     {
-        public int id;
-        public string? name;
-        public string? description;
+        public int id { get; set; }
+        public string? name { get; set; }
+        public string? description { get; set; }
+        public static Equipment FromDictionary(Dictionary<string, object?> row)
+        {
+            return new Equipment
+            {
+                id = Convert.ToInt32(row["id"]),
+                name = Convert.ToString(row["name"]),
+                description = Convert.ToString(row["description"]),
+            };
+        }
     }
 }

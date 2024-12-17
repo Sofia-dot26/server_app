@@ -12,7 +12,8 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="Npgsql" Version="9.0.1" />
+		<PackageReference Include="Npgsql" Version="6.0.8" />
+		<Content Include="AccountingClient\**\*" CopyToOutputDirectory="PreserveNewest" />
+		<Content Include="migration.sql" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
-
 </Project>

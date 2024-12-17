@@ -12,13 +12,19 @@ using Spend;
 using Equipment;
 using Reports;
 using Auth;
+using System.Dynamic;
+using System.Reflection;
+using System.Text.Json.Serialization;
+using System.Diagnostics;
 
 namespace ServerApp
 {
     // Интерфейс для вызова контроллеров
     public interface IController
     {
+        public const string Controller = "";
         dynamic Handle(HttpContext context, string? method);
+        static dynamic GetInterface() => throw new NotImplementedException();
     }
 
     public class ServerApp
@@ -51,7 +57,6 @@ namespace ServerApp
             ServerStatus.Status = 0; // Неизвестен
             // Запуск API-сервера
             var host = Host.CreateDefaultBuilder(args)
-                //.ConfigureLogging(logging => logging.ClearProviders()) // Отключу лог перед сдачей, чтоб не мельтешил
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseUrls($"http://localhost:{config.ApiPort}");
@@ -85,10 +90,17 @@ namespace ServerApp
 
                                 bool accessAllowed = controller switch
                                 {
-                                    "auth" or "health" => true,
-                                    "users" => user?.isAdmin() ?? false,
-                                    "materials" or "spend" or "supplies" => user?.isAccounter() ?? false,
-                                    "suppliers" or "equipment" => user?.isDirector() ?? false,
+                                    // Авторизация
+                                    AuthController.Controller or "system" => true,
+
+                                    UserController.Controller => user?.isAdmin() ?? false,
+                                    MaterialController.Controller 
+                                    or SpendController.Controller 
+                                    or SupplyController.Controller
+                                    or SupplierController.Controller
+                                    or EquipmentController.Controller => 
+                                      (user?.isDirector() ?? false) || (user?.isAccounter() ?? false),
+                                    ReportController.Controller => user?.id != null,
                                     _ => false
                                 };
                                 
@@ -98,40 +110,48 @@ namespace ServerApp
                                     case "1":
                                         switch (controller)
                                         {
-                                            case "auth":
+                                            case AuthController.Controller:
                                                 controllerObject = authController;
                                                 break;
-                                            case "users":
+                                            case UserController.Controller:
                                                 controllerObject = userController;
                                                 break;
-                                            case "materials":
+                                            case MaterialController.Controller:
                                                 controllerObject = new MaterialController(new MaterialService());
                                                 break;
-                                            case "suppliers":
+                                            case SupplierController.Controller:
                                                 controllerObject = new SupplierController(new SupplierService());
                                                 break;
-                                            case "supplies":
+                                            case SupplyController.Controller:
                                                 controllerObject = new SupplyController(new SupplyService());
                                                 break;
-                                            case "spend":
+                                            case SpendController.Controller:
                                                 controllerObject = new SpendController(new SpendService());
                                                 break;
-                                            case "equipment":
+                                            case EquipmentController.Controller:
                                                 controllerObject = new EquipmentController(new EquipmentService());
                                                 break;
-                                            case "reports":
+                                            case ReportController.Controller:
                                                 controllerObject = new ReportController(new ReportService());
                                                 break;
-                                            case "health":
-                                                if (method == "check")
+                                            case "system":
+                                                switch (method)
                                                 {
-                                                    var status = ServerStatus.Status;
-                                                    if (status == -1) {
-                                                        context.Response.StatusCode = 503;
-                                                        result = new { message = "Ведутся работы на сервере" };
-                                                    } else {
-                                                        result = new { message = "ОК" };
-                                                    }
+                                                    case "get-interface":
+                                                        result = InterfaceAggregator.GetFullInterface();
+                                                        break;
+                                                    case "check-health":
+                                                        var status = ServerStatus.Status;
+                                                        if (status == -1)
+                                                        {
+                                                            context.Response.StatusCode = 503;
+                                                            result = new { message = "Ведутся работы на сервере" };
+                                                        }
+                                                        else
+                                                        {
+                                                            result = new { message = "ОК" };
+                                                        }
+                                                        break;
                                                 }
                                                 break;
                                             // TODO: добавить остальные контроллеры
@@ -146,9 +166,6 @@ namespace ServerApp
                                         result = new { message = "Версия API не поддерживается. Используйте v1." };
                                         break;
                                 }
-                                // Если у нас запрос обрабатывается через стандартный контроллерный интерфейс,
-                                //   можем просто его обработать и получить свой результат.
-                                //   На самом деле, это удобно и здорово повышает читаемость кода.
                                 if (controllerObject != null)
                                 {
                                     if (accessAllowed)
@@ -165,8 +182,53 @@ namespace ServerApp
                                     
                                 }
 
-                                string resultText = JsonSerializer.Serialize(result);
+                                var options = new JsonSerializerOptions
+                                {
+                                    DefaultIgnoreCondition = JsonIgnoreCondition.Never, // Включаем свойства с null значениями
+                                    WriteIndented = false // Если нужен компактный JSON
+                                };
+
+                                string resultText = JsonSerializer.Serialize(result, options);
                                 await context.Response.WriteAsync(resultText);
+                            });
+
+                            endpoints.MapMethods("/{**filePath}", new[] { "GET" }, async context =>
+                            {
+                                string filePath = context.Request.RouteValues["filePath"]?.ToString() ?? "";
+                                string baseDirectory = Path.Combine(AppContext.BaseDirectory, "AccountingClient");
+                                string fullPath = Path.Combine(baseDirectory, filePath);
+
+                                if (!File.Exists(fullPath))
+                                {
+                                    context.Response.StatusCode = 404;
+                                    await context.Response.WriteAsync("404 Not Found");
+                                    return;
+                                }
+
+                                // Определение Content-Type
+                                string extension = Path.GetExtension(fullPath).ToLowerInvariant();
+                                string contentType = extension switch
+                                {
+                                    ".html" or ".htm" => "text/html",
+                                    ".js" => "application/javascript",
+                                    ".css" => "text/css",
+                                    ".jpg" or ".jpeg"  => "image/jpeg",
+                                    ".png" => "image/png",
+                                    ".gif" => "image/gif",
+                                    _ => "application/octet-stream"
+                                };
+
+                                context.Response.ContentType = contentType;
+
+                                try
+                                {
+                                    await context.Response.SendFileAsync(fullPath); // Отправляем файл
+                                }
+                                catch (Exception ex)
+                                {
+                                    context.Response.StatusCode = 500;
+                                    await context.Response.WriteAsync($"500 Internal Server Error: {ex.Message}");
+                                }
                             });
                         });
                     });
@@ -186,7 +248,7 @@ namespace ServerApp
             }
             
 
-            Console.WriteLine("Введите 'exit' или 'q', чтобы завершить сервер.");
+            Console.WriteLine("Введите 'exit' или 'q', чтобы завершить сервер, app для запуска браузера с клиентом.");
             bool run = true;
             while (run)
             {
@@ -203,10 +265,64 @@ namespace ServerApp
                         Console.WriteLine("Завершение работы сервера и выход...");
                         run = false;
                         break;
+                    case "app":
+                        string url = $"http://localhost:{config.ApiPort}/index.html";
+                        OpenBrowser(url);
+                        break;
+                    default:
+                        Console.WriteLine("Введите 'exit' или 'q', чтобы завершить сервер, app для запуска браузера с клиентом.");
+                        break;
                 }
             }
         }
-    } // Конец класса ServerApp
+
+        public static int? getInt(HttpContext context, string name, int? defaultValue = null)
+        {
+            string s = context.Request.Query[name];
+            int result;
+            bool isNull = false;
+
+            if (string.IsNullOrEmpty(s) || !int.TryParse(s, out result))
+            {
+                result = defaultValue ?? 0; // Устанавливаем значение по умолчанию
+                isNull = true;
+            }
+
+            return isNull ? null : result;
+        }
+        public static DateTime? getDateTime(HttpContext context, string name, DateTime? defaultValue = null)
+        {
+            string s = context.Request.Query[name];
+            DateTime result;
+            bool isNull = false;
+
+            if (string.IsNullOrEmpty(s) || !DateTime.TryParse(s, out result))
+            {
+                result = defaultValue ?? DateTime.Today; // Устанавливаем значение по умолчанию
+                isNull = true;
+            }
+
+            return isNull ? null : result;
+        }
+
+        
+
+        static void OpenBrowser(string url)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = url,
+                    UseShellExecute = true // Использует системный обработчик для открытия ссылки
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при открытии браузера: {ex.Message}");
+            }
+        }
+    } 
 
     public class ServerResponse
     {
@@ -214,7 +330,7 @@ namespace ServerApp
         public string? Message { get; set; }
 
         public dynamic? Data { get; set; }
-    } // Конец класса ServerResponse
+    } 
 
     public static class ServerStatus
     {
@@ -226,4 +342,50 @@ namespace ServerApp
             set => _status = value;
         }
     }
-} // Конец пространства имён ServerApp
+
+    public static class InterfaceAggregator
+    {
+        private static readonly List<Type> Controllers = new()
+    {
+        typeof(UserController),
+        typeof(MaterialController),
+        typeof(SupplierController),
+        typeof(EquipmentController),
+        typeof(SupplyController),
+        typeof(SpendController),
+        typeof(ReportController)
+    };
+
+        public static dynamic GetFullInterface()
+        {
+            dynamic result = new ExpandoObject();
+            var controllers = new List<Type>
+            {
+                typeof(UserController),
+                typeof(MaterialController),
+                typeof(SupplierController),
+                typeof(EquipmentController),
+                typeof(SupplyController),
+                typeof(SpendController),
+                typeof(ReportController)
+            };
+
+            foreach (var controller in controllers)
+            {
+                var method = controller.GetMethod("GetInterface", BindingFlags.Static | BindingFlags.Public);
+                if (method != null)
+                {
+                    var controllerInterface = method.Invoke(null, null);
+                    foreach (var kv in (IDictionary<string, object>)controllerInterface)
+                    {
+                        ((IDictionary<string, object>)result)[kv.Key] = kv.Value;
+                    }
+                }
+            }
+
+            return result;
+        } 
+
+    }
+
+} 
