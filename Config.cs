@@ -10,7 +10,7 @@ namespace ServerApp
         public string PostgresUser { get; set; } = "postgres";
         public string PostgresPassword { get; set; } = "12345678";
         public int ApiPort { get; set; } = 8080;
-        public string Database { get; set; } = "acc";
+        public string Database { get; set; } = "accounting";
         public string SchemaPath { get; set; } = "schema.json";
 
         public static string GetConfigPath(string[] args)
@@ -23,7 +23,7 @@ namespace ServerApp
                 }
             }
             return "server.conf";
-        } // Конец метода GetConfigPath
+        }
 
         // Метод для загрузки конфигурации из JSON-файла
         public static Config LoadFromJson(string filePath)
@@ -62,7 +62,7 @@ namespace ServerApp
                 Console.WriteLine($"Ошибка при чтении конфигурации: {ex.Message}. Используются параметры по умолчанию.");
                 return new Config();
             }
-        } // Конец метода LoadFromJson
+        }
 
         // Метод для сохранения конфигурации в файл JSON
         public void SaveToJson(string filePath)
@@ -82,6 +82,6 @@ namespace ServerApp
             {
                 Console.WriteLine($"Ошибка при создании файла конфигурации: {ex.Message}");
             }
-        } // Конец метода SaveToJson
-    } // Конец класса Config
+        }
+    }
 }

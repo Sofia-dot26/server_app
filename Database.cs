@@ -7,20 +7,20 @@ namespace ServerApp
     public class DatabaseSchema
     {
         public List<TableSchema>? Tables { get; set; }
-    } // Конец класса DatabaseSchema
+    }
 
     public class TableSchema
     {
         public string? Name { get; set; }
         public List<ColumnSchema>? Columns { get; set; }
-    } // Конец класса TableSchema
+    }
 
     public class ColumnSchema
     {
         public string? Name { get; set; }
         public string? Type { get; set; }
         public bool PrimaryKey { get; set; }
-    } // Конец класса ColumnSchema
+    }
 
     public static class DatabaseHelper
     {
@@ -40,7 +40,7 @@ namespace ServerApp
                 Console.WriteLine($"Ошибка выполнения SQL: {ex.Message}");
                 return false;
             }
-        } // Конец метода ExecuteNonQuery
+        }
 
         public static List<Dictionary<string, object?>> ExecuteQuery(string sql, Dictionary<string, object>? parameters = null)
         {
@@ -73,13 +73,13 @@ namespace ServerApp
             }
 
             return results;
-        } // Конец метода ExecuteQuery
+        }
 
         private static string GetConnectionString(string? database = null)
         {
             var config = ServerApp.config;
             return config == null ? "" : $"Host={config.PostgresHost};Port={config.PostgresPort};Username={config.PostgresUser};Password={config.PostgresPassword};Database={database ?? config.Database}";
-        } // Конец метода GetConnectionString
+        }
 
         private static void AddParameters(NpgsqlCommand command, Dictionary<string, object>? parameters)
         {
@@ -90,7 +90,7 @@ namespace ServerApp
                     command.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
                 }
             }
-        } // Конец метода AddParameters
+        }
 
         public static bool TestDatabaseConnection()
         {
@@ -113,15 +113,16 @@ namespace ServerApp
                 }
             }
             return result;
-        } // Конец метода TestDatabaseConnection
+        }
 
-    
+
         public static bool RunMigration()
         {
             Config? config = ServerApp.config;
             string migrationFilePath = "migration.sql";
 
-            if (config == null) {
+            if (config == null)
+            {
                 Console.WriteLine("Конфиг не найден. Миграция не выполнена.");
                 return false;
             }
@@ -163,7 +164,7 @@ namespace ServerApp
                     }
                 }
                 // Миграция нужна
-                if (needMigration) 
+                if (needMigration)
                 {
                     // Шаг 2: Подключение к созданной базе данных
                     string connectionStringAccounting = GetConnectionString(config.Database); ;
@@ -188,8 +189,8 @@ namespace ServerApp
                 Console.WriteLine($"Ошибка выполнения миграции: {ex.Message}");
                 return false;
             }
-        } // Конец метода RunMigration
+        }
 
 
-    } // Конец класса DatabaseHelper
+    }
 }

@@ -12,7 +12,6 @@ INSERT INTO Users (id, login, password_hash, role) VALUES
 CREATE TABLE Materials (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    quantity INT NOT NULL,
     unit VARCHAR(50) NOT NULL
 );
 
@@ -46,6 +45,8 @@ CREATE TABLE SpentMaterials (
 CREATE TABLE Reports (
     id SERIAL PRIMARY KEY,
     report_type VARCHAR(255) NOT NULL,
+    report_date DATE,
+    author_id INT NOT NULL,
     period_start DATE,
     period_end DATE,
     content TEXT NOT NULL

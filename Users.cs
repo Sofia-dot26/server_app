@@ -1,6 +1,7 @@
 using Auth;
 using Microsoft.AspNetCore.Http;
 using ServerApp;
+using System.Dynamic;
 using System.Security.Cryptography;
 
 namespace Users
@@ -42,7 +43,7 @@ namespace Users
                 { "@role", role }
             };
             var result = error == "" ? DatabaseHelper.ExecuteQuery(sql, parameters) : null;
-            
+
             return result?.Count > 0 ? Convert.ToInt32(result[0]["id"]) : null;
         }
 
@@ -62,7 +63,7 @@ namespace Users
             }
 
             // Проверяем на существование пользователей с одинаковым логином или ID
-           
+
 
             // Генерируем ошибку, если пользователи не найдены
             error = (user_byid == null ? $"Пользователь с ID {id} не существует. " : "") +
@@ -130,7 +131,7 @@ namespace Users
         }
         public User? GetUser(string login)
         {
-            string sql = "SELECT * FROM Users WHERE login = @login";
+            string sql = "SELECT * FROM Users WHERE LOWER(login) = LOWER(@login);";
             var parameters = new Dictionary<string, object> {
                 { "@login", login }
             };
@@ -150,10 +151,11 @@ namespace Users
 
             return users;
         }
-    } // Конец UserService
+    }
 
-    public class UserController: IController
+    public class UserController : IController
     {
+        public const string Controller = "users";
         private readonly IUserService _userService;
 
         public UserController(IUserService userService)
@@ -172,7 +174,7 @@ namespace Users
         {
             bool success = _userService.UpdateUser(id, login, password, role, out string error);
             return new { success, message = success ? "Пользователь обновлён." : "Ошибка при обновлении пользователя." };
-               
+
         }
 
         public object Delete(int id)
@@ -189,6 +191,9 @@ namespace Users
         public object Handle(HttpContext context, string? method)
         {
             dynamic result;
+            Session? session = (new AuthController(new AuthService())).GetSession(AuthController.GetSessionId(context) ?? 0);
+            User? user = session == null ? null : (new UserController(new UserService())).Get(session.user_id);
+
             switch (method?.ToLower())
             {
                 case "add":
@@ -208,7 +213,10 @@ namespace Users
 
                 case "delete":
                     id = int.Parse(context.Request.Query["id"]);
-                    result = this.Delete(id);
+                    result = id == user?.id ? new { message = "Роскомнадзор запрещает делать это" } : this.Delete(id);
+                    break;
+                case "list":
+                    result = _userService.GetAllUsers();
                     break;
 
                 default:
@@ -217,8 +225,44 @@ namespace Users
                     break;
             }
             return result;
-        } // Конец метода Handle
-    } // Конец UserController
+        }
+
+        public static dynamic GetInterface()
+        {
+            dynamic interfaceData = new ExpandoObject();
+            interfaceData.Users = new
+            {
+                description = "Представление для управления пользователями",
+                controller = "users",
+                header = new
+                {
+                    id = "ID",
+                    login = "Логин",
+                    password = "Пароль",
+                    role_rus = "Роль"
+                },
+                add = new
+                {
+                    login = new { text = "Логин", type = "text" },
+                    password = new { text = "Пароль", type = "password" },
+                    role = new
+                    {
+                        text = "Роль",
+                        type = "radio-images",
+                        values = new
+                        {
+                            admin = "Администратор",
+                            dir = "Начальник подразделения",
+                            acc = "Учётчик"
+                        }
+                    },
+                },
+                title = "пользователя",
+                title_main = "Пользователи"
+            };
+            return interfaceData;
+        }
+    }
 
     public class User
     {
@@ -226,6 +270,7 @@ namespace Users
         public string? login { get; set; }
         public string? password_hash { get; set; }
         public string? role { get; set; }
+        public string? role_rus { get => this.role switch { AuthService.ROLE_ADMIN => "Администратор", AuthService.ROLE_DIRECTOR => "Начальник", AuthService.ROLE_ACCOUNTER => "Учётчик", _ => "" }; }
 
         public static User FromDictionary(Dictionary<string, object?> row)
         {
@@ -238,15 +283,18 @@ namespace Users
             };
         }
 
-        public bool isAdmin() {
+        public bool isAdmin()
+        {
             return this.role == "admin";
         }
 
-        public bool isDirector() {
+        public bool isDirector()
+        {
             return this.role == "dir";
         }
 
-        public bool isAccounter() {
+        public bool isAccounter()
+        {
             return this.role == "acc";
         }
     }
