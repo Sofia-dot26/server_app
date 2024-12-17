@@ -10,17 +10,17 @@
 </head>
 <body>
 
-    <!--Навигация "Хлебные крошки"-->
+    <!--Наивгация "Хлебные крошки"-->
     <div id="breadcrumbs" style="display: none"></div>
 
-    <!--Панель уведомления-->
+    <!--Панеь уведомления-->
     <div id="notification" class="notification"></div>
 
     <div class="view active" id="LoadingView">
 
     </div>
 
-    <!--Форма для авторизации пользователей-->
+    <!--Форма для авторизаци пользователей-->
     <div class="view" id="LoginView">
         <div class="view-header">Клиент учёта материалов</div>
         <label for="lv-login">Логин:</label>
@@ -30,7 +30,7 @@
         <input type="button" value="Войти" id="lb-enter">
     </div>
 
-    <!--Основная панель управления - она же меню-->
+    <!--Основная панель управления - меню-->
     <div class="view" id="DashboardView">
         <h1 id="control-panel">Панель управления</h1>
         <h3 id="greetings"></h3>
@@ -43,5 +43,11 @@
     <!--Контейнер для остальных областей-->
     <div id="views-container"></div>
 
+    <!--Отдельная форма для просмотра табличных элементов-->
+    <div class="view" id="TableView">
+        <div id="TableViewHeader"></div>
+        <div id="TableViewTable"></div>
+        <button class="back-button" onclick="goBack()">Назад</button>
+    </div>
 </body>
 </html>
