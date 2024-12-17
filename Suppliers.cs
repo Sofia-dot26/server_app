@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using ServerApp;
+using System.Dynamic;
 using System.Text.Json;
 using System.Xml.Linq;
 
@@ -72,17 +73,12 @@ namespace Suppliers
             var suppliers = new List<Supplier>();
             foreach (var row in results)
             {
-                suppliers.Add(new Supplier
-                {
-                    id = Convert.ToInt32(row["id"]),
-                    name = Convert.ToString(row["name"]),
-                    contactInfo = Convert.ToString(row["contact_info"])
-                });
+                suppliers.Add(Supplier.FromDictionary(row));
             }
 
             return suppliers;
         }
-    } // Конец класса SupplierService
+    } 
 
     public class SupplierController: IController
     {
@@ -126,10 +122,7 @@ namespace Suppliers
 
         public object GetAllSuppliers()
         {
-            return new { 
-                message = "Поставщики получены",
-                data = _supplierService.GetAllSuppliers()
-            };
+            return _supplierService.GetAllSuppliers();
         }
 
         public object Handle(HttpContext context, string? method)
@@ -161,13 +154,47 @@ namespace Suppliers
                     break;
             }
             return result;
-        } // Конец метода HandleSupplierRequest
-    } // Конец класса SupplierController
+        }
+        public static dynamic GetInterface()
+        {
+            dynamic interfaceData = new ExpandoObject();
+
+            interfaceData.Suppliers = new
+            {
+                description = "Представление для управления поставщиками",
+                controller = "suppliers",
+                header = new
+                {
+                    id = "ID",
+                    name = "Название",
+                    contactInfo = "Контактная информация"
+                },
+                add = new
+                {
+                    name = new { text = "Название", type = "text" },
+                    contact_info = new { text = "Контактная информация", type = "text" }
+                },
+                title = "поставщика",
+                title_main = "Поставщики"
+            };
+            return interfaceData;
+        } 
+
+    } 
 
     public class Supplier
     {
-        public int id;
-        public string? name;
-        public string? contactInfo;
+        public int id {  get; set; }
+        public string? name { get; set; }
+        public string? contactInfo { get; set; }
+        public static Supplier FromDictionary (Dictionary<string, object?> row)
+        {
+            return new Supplier
+            {
+                id = Convert.ToInt32(row["id"]),
+                name = Convert.ToString(row["name"]),
+                contactInfo = Convert.ToString(row["contact_info"])
+            };
+        }
     }
 }

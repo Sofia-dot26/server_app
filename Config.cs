@@ -62,7 +62,7 @@ namespace ServerApp
                 Console.WriteLine($"Ошибка при чтении конфигурации: {ex.Message}. Используются параметры по умолчанию.");
                 return new Config();
             }
-        } // Конец метода LoadFromJson
+        } 
 
         // Метод для сохранения конфигурации в файл JSON
         public void SaveToJson(string filePath)
@@ -82,6 +82,6 @@ namespace ServerApp
             {
                 Console.WriteLine($"Ошибка при создании файла конфигурации: {ex.Message}");
             }
-        } // Конец метода SaveToJson
-    } // Конец класса Config
+        } 
+    } 
 }

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Accounting Client App</title>
+    <script defer src="api-service.js"></script>
+    <script defer src="view.js"></script>
+    <script defer src="app-controller.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!--Наивгация "Хлебные крошки"-->
+    <div id="breadcrumbs" style="display: none"></div>
+
+    <!--Панеь уведомления-->
+    <div id="notification" class="notification"></div>
+
+    <div class="view active" id="LoadingView">
+
+    </div>
+
+    <!--Форма для авторизаци пользователей-->
+    <div class="view" id="LoginView">
+        <div class="view-header">Клиент учёта материалов</div>
+        <label for="lv-login">Логин:</label>
+        <input type="text" name="login" id="lv-login" />
+        <label for="lv-password">Пароль:</label>
+        <input type="password" name="login" id="lv-password" />
+        <input type="button" value="Войти" id="lb-enter">
+    </div>
+
+    <!--Основная панель управления - меню-->
+    <div class="view" id="DashboardView">
+        <h1 id="control-panel">Панель управления</h1>
+        <h3 id="greetings"></h3>
+
+        <div id="dashboard-links"></div>
+
+        <button id="logout-button">Выйти</button>
+    </div>
+
+    <!--Контейнер для остальных областей-->
+    <div id="views-container"></div>
+
+    <!--Отдельная форма для просмотра табличных элементов-->
+    <div class="view" id="TableView">
+        <div id="TableViewHeader"></div>
+        <div id="TableViewTable"></div>
+        <button class="back-button" onclick="goBack()">Назад</button>
+    </div>
+</body>
+</html>

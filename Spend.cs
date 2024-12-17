@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ServerApp;
+using System.Dynamic;
 
 namespace Spend
 {
@@ -11,7 +12,7 @@ namespace Spend
         bool DeleteSpend(int id);
         Spend? GetSpend(int id);
         List<Spend> GetAllSpentMaterials();
-    } // Конец интерфейса ISpentMaterialService
+    }
 
     public class SpendService : ISpentMaterialService
     {
@@ -24,7 +25,7 @@ namespace Spend
                 { "@date", date }
             };
             return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        } // Конец метода AddSpend
+        }
 
         public bool UpdateSpend(int id, int materialId, int quantity, DateTime date)
         {
@@ -36,14 +37,14 @@ namespace Spend
                 { "@date", date }
             };
             return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        } // Конец метода UpdateSpend
+        } 
 
         public bool DeleteSpend(int id)
         {
             string sql = "DELETE FROM SpentMaterials WHERE id = @id";
             var parameters = new Dictionary<string, object> { { "@id", id } };
             return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        } // Конец метода DeleteSpend
+        } 
 
         public Spend? GetSpend(int id)
         {
@@ -58,9 +59,9 @@ namespace Spend
                 quantity = Convert.ToInt32(row["quantity"]),
                 date = Convert.ToDateTime(row["date"])
             } : null; // Если запрос не вернул строк, возвращаем null
-        } // Конец метода GetSpend
+        } 
 
-        public List<Spend> GetAllSpentMaterials() // Конец метода GetAllSpentMaterials
+        public List<Spend> GetAllSpentMaterials() 
         {
             string sql = "SELECT * FROM SpentMaterials";
             var results = DatabaseHelper.ExecuteQuery(sql);
@@ -78,9 +79,9 @@ namespace Spend
             }
 
             return SpentMaterials;
-        } // Конец метода GetAllSpentMaterials
+        } 
 
-    } // Конец SpendService
+    } 
 
     public class SpendController : IController
     {
@@ -99,7 +100,7 @@ namespace Spend
                 success,
                 message = success ? "Трата материалов добавлена." : "Ошибка при добавлении траты материалов."
             };
-        } // Конец метода AddSpend
+        } 
 
         public object UpdateSpend(int id, int materialId, int quantity, DateTime date)
         {
@@ -109,7 +110,7 @@ namespace Spend
                 success,
                 message = success ? "Трата обновлена." : "Ошибка при обновлении траты."
             };
-        } // Конец метода UpdateSpend
+        } 
 
         public object DeleteSpend(int id)
         {
@@ -119,7 +120,7 @@ namespace Spend
                 success,
                 message = success ? "Трата удалена." : "Ошибка при удалении траты."
             };
-        } // Конец метода DeleteSpend
+        } 
 
 
         public object GetSpend(int id)
@@ -133,11 +134,7 @@ namespace Spend
 
         public object GetAllSpentMaterials()
         {
-            var Spent = _SpendService.GetAllSpentMaterials();
-            return new {
-                message = Spent.Count == 0 ? "Список пуст" : "Список трат получен",
-                data = Spent
-            };
+            return _SpendService.GetAllSpentMaterials();
         }
 
         public object Handle(HttpContext context, string? method)
@@ -180,16 +177,45 @@ namespace Spend
                     break;
             }
             return result;
-        } // Конец метода Handle
-    } // Конец SpendController
+        } 
+        public static dynamic GetInterface()
+        {
+            dynamic interfaceData = new ExpandoObject();
+
+            interfaceData.Spends = new
+            {
+                description = "Представление для управления тратами",
+                controller = "spend",
+                header = new
+                {
+                    id = "ID",
+                    date = "Дата",
+                    material_name = "Материал",
+                    quantity = "Количество",
+                    unit = "Единица"
+                },
+                add = new
+                {
+                    date = new { text = "Дата", type = "date" },
+                    material_name = new { text = "Материал", type = "text" },
+                    quantity = new { text = "Количество", type = "number" },
+                    unit = new { text = "Единица", type = "text" }
+                },
+                title = "трату",
+                title_main = "Траты"
+            };
+            return interfaceData;
+        } 
+
+    } 
 
 
     public class Spend
     {
-        public int id;
-        public int materialId;
-        public int supplierId;
-        public int quantity;
-        public DateTime date;
+        public int id { get; set; }
+        public int materialId { get; set; }
+        public int supplierId { get; set; }
+        public int quantity { get; set; }
+        public DateTime date { get; set; }
     }
 }
