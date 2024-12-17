@@ -1,10 +1,10 @@
-using Microsoft.AspNetCore.Http;
+п»їusing Microsoft.AspNetCore.Http;
 using ServerApp;
 using System.Dynamic;
 
 namespace Materials
 {
-    // Управление материалами
+    // РЈРїСЂР°РІР»РµРЅРёРµ РјР°С‚РµСЂРёР°Р»Р°РјРё
     public interface IMaterialService
     {
         bool AddMaterial(string name, string unit); 
@@ -14,7 +14,7 @@ namespace Materials
         List<Material> GetAllMaterials();
     } 
 
-    // Сервис для материалов
+    // РЎРµСЂРІРёСЃ РґР»СЏ РјР°С‚РµСЂРёР°Р»РѕРІ
     public class MaterialService : IMaterialService
     {
         public bool AddMaterial(string name, string unit)
@@ -92,7 +92,7 @@ namespace Materials
             return new
             {
                 success,
-                message = success ? "Материал добавлен." : "Ошибка при добавлении материала."
+                message = success ? "РњР°С‚РµСЂРёР°Р» РґРѕР±Р°РІР»РµРЅ." : "РћС€РёР±РєР° РїСЂРё РґРѕР±Р°РІР»РµРЅРёРё РјР°С‚РµСЂРёР°Р»Р°."
             };
         }
 
@@ -102,7 +102,7 @@ namespace Materials
             return new
             {
                 success,
-                message = success ? "Материал обновлён." : "Ошибка при обновлении материала."
+                message = success ? "РњР°С‚РµСЂРёР°Р» РѕР±РЅРѕРІР»С‘РЅ." : "РћС€РёР±РєР° РїСЂРё РѕР±РЅРѕРІР»РµРЅРёРё РјР°С‚РµСЂРёР°Р»Р°."
             };
         }
 
@@ -112,7 +112,7 @@ namespace Materials
             return new
             {
                 success,
-                message = success ? "Материал удалён." : "Ошибка при удалении материала."
+                message = success ? "РњР°С‚РµСЂРёР°Р» СѓРґР°Р»С‘РЅ." : "РћС€РёР±РєР° РїСЂРё СѓРґР°Р»РµРЅРёРё РјР°С‚РµСЂРёР°Р»Р°."
             };
         }
 
@@ -124,7 +124,7 @@ namespace Materials
             return new
             {
                 success,
-                message = success ? "Материал найден." : "Материал не найден.",
+                message = success ? "РњР°С‚РµСЂРёР°Р» РЅР°Р№РґРµРЅ." : "РњР°С‚РµСЂРёР°Р» РЅРµ РЅР°Р№РґРµРЅ.",
                 data = material
             };
         } 
@@ -168,7 +168,7 @@ namespace Materials
 
                 default:
                     context.Response.StatusCode = 404;
-                    result = new { message = "Метод не найден." };
+                    result = new { message = "РњРµС‚РѕРґ РЅРµ РЅР°Р№РґРµРЅ." };
                     break;
             }
             return result;
@@ -178,21 +178,21 @@ namespace Materials
             dynamic interfaceData = new ExpandoObject();
             interfaceData.Materials = new
             {
-                description = "Представление для управления материалами",
+                description = "РџСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ РґР»СЏ СѓРїСЂР°РІР»РµРЅРёСЏ РјР°С‚РµСЂРёР°Р»Р°РјРё",
                 controller = "materials",
                 header = new
                 {
                     id = "ID",
-                    name = "Название",
-                    unit = "Единица"
+                    name = "РќР°Р·РІР°РЅРёРµ",
+                    unit = "Р•РґРёРЅРёС†Р°"
                 },
                 add = new
                 {
-                    name = new { text = "Название", type = "text" },
-                    unit = new { text = "Единица", type = "text" }
+                    name = new { text = "РќР°Р·РІР°РЅРёРµ", type = "text" },
+                    unit = new { text = "Р•РґРёРЅРёС†Р°", type = "text" }
                 },
-                title = "материал",
-                title_main = "Материалы"
+                title = "РјР°С‚РµСЂРёР°Р»",
+                title_main = "РњР°С‚РµСЂРёР°Р»С‹"
             };
             return interfaceData;
         } 

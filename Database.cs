@@ -1,4 +1,4 @@
-using Npgsql;
+п»їusing Npgsql;
 using System.Text.Json;
 
 namespace ServerApp
@@ -37,7 +37,7 @@ namespace ServerApp
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка выполнения SQL: {ex.Message}");
+                Console.WriteLine($"РћС€РёР±РєР° РІС‹РїРѕР»РЅРµРЅРёСЏ SQL: {ex.Message}");
                 return false;
             }
         } 
@@ -69,7 +69,7 @@ namespace ServerApp
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка выполнения запроса: {ex.Message}");
+                Console.WriteLine($"РћС€РёР±РєР° РІС‹РїРѕР»РЅРµРЅРёСЏ Р·Р°РїСЂРѕСЃР°: {ex.Message}");
             }
 
             return results;
@@ -98,18 +98,18 @@ namespace ServerApp
             var result = false;
             if (config != null)
             {
-                Console.WriteLine($"Тестирование подключения к PostgreSQL: {config.PostgresHost}:{config.PostgresPort}");
+                Console.WriteLine($"РўРµСЃС‚РёСЂРѕРІР°РЅРёРµ РїРѕРґРєР»СЋС‡РµРЅРёСЏ Рє PostgreSQL: {config.PostgresHost}:{config.PostgresPort}");
 
                 try
                 {
                     using var connection = new NpgsqlConnection(GetConnectionString("postgres"));
                     connection.Open();
-                    Console.WriteLine("Подключение успешно.");
+                    Console.WriteLine("РџРѕРґРєР»СЋС‡РµРЅРёРµ СѓСЃРїРµС€РЅРѕ.");
                     result = true;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Ошибка подключения: {ex.Message}");
+                    Console.WriteLine($"РћС€РёР±РєР° РїРѕРґРєР»СЋС‡РµРЅРёСЏ: {ex.Message}");
                 }
             }
             return result;
@@ -122,13 +122,13 @@ namespace ServerApp
             string migrationFilePath = "migration.sql";
 
             if (config == null) {
-                Console.WriteLine("Конфиг не найден. Миграция не выполнена.");
+                Console.WriteLine("РљРѕРЅС„РёРі РЅРµ РЅР°Р№РґРµРЅ. РњРёРіСЂР°С†РёСЏ РЅРµ РІС‹РїРѕР»РЅРµРЅР°.");
                 return false;
             }
 
             if (!File.Exists(migrationFilePath))
             {
-                Console.WriteLine("Файл миграции не найден. Миграция не выполнена.");
+                Console.WriteLine("Р¤Р°Р№Р» РјРёРіСЂР°С†РёРё РЅРµ РЅР°Р№РґРµРЅ. РњРёРіСЂР°С†РёСЏ РЅРµ РІС‹РїРѕР»РЅРµРЅР°.");
                 return false;
             }
 
@@ -137,55 +137,55 @@ namespace ServerApp
 
             try
             {
-                // Шаг 1: Подключение к базе postgres
+                // РЁР°Рі 1: РџРѕРґРєР»СЋС‡РµРЅРёРµ Рє Р±Р°Р·Рµ postgres
                 string connectionStringPostgres = GetConnectionString("postgres");
                 bool needMigration = false;
                 using (var connection = new Npgsql.NpgsqlConnection(connectionStringPostgres))
                 {
                     connection.Open();
 
-                    // Проверяем существование базы данных
+                    // РџСЂРѕРІРµСЂСЏРµРј СЃСѓС‰РµСЃС‚РІРѕРІР°РЅРёРµ Р±Р°Р·С‹ РґР°РЅРЅС‹С…
                     using (var command = new Npgsql.NpgsqlCommand($"SELECT 1 FROM pg_database WHERE datname = '{config.Database}'", connection))
                     {
                         if (command.ExecuteScalar() == null)
                         {
-                            // Создаём базу данных
+                            // РЎРѕР·РґР°С‘Рј Р±Р°Р·Сѓ РґР°РЅРЅС‹С…
                             command.CommandText = $"CREATE DATABASE {config.Database}";
                             command.ExecuteNonQuery();
-                            Console.WriteLine($"База данных {config.Database} создана.");
-                            // Если базы не было и она была создана - миграция нужна
+                            Console.WriteLine($"Р‘Р°Р·Р° РґР°РЅРЅС‹С… {config.Database} СЃРѕР·РґР°РЅР°.");
+                            // Р•СЃР»Рё Р±Р°Р·С‹ РЅРµ Р±С‹Р»Рѕ Рё РѕРЅР° Р±С‹Р»Р° СЃРѕР·РґР°РЅР° - РјРёРіСЂР°С†РёСЏ РЅСѓР¶РЅР°
                             needMigration = true;
                         }
                         else
                         {
-                            Console.WriteLine($"База данных {config.Database} уже существует.");
+                            Console.WriteLine($"Р‘Р°Р·Р° РґР°РЅРЅС‹С… {config.Database} СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.");
                         }
                     }
                 }
-                // Миграция нужна
+                // РњРёРіСЂР°С†РёСЏ РЅСѓР¶РЅР°
                 if (needMigration) 
                 {
-                    // Шаг 2: Подключение к созданной базе данных
+                    // РЁР°Рі 2: РџРѕРґРєР»СЋС‡РµРЅРёРµ Рє СЃРѕР·РґР°РЅРЅРѕР№ Р±Р°Р·Рµ РґР°РЅРЅС‹С…
                     string connectionStringAccounting = GetConnectionString(config.Database); ;
 
                     using (var connection = new Npgsql.NpgsqlConnection(connectionStringAccounting))
                     {
                         connection.Open();
 
-                        // Выполняем команды миграции
+                        // Р’С‹РїРѕР»РЅСЏРµРј РєРѕРјР°РЅРґС‹ РјРёРіСЂР°С†РёРё
                         using (var command = new Npgsql.NpgsqlCommand(migrationSQL, connection))
                         {
                             command.ExecuteNonQuery();
-                            Console.WriteLine("Миграция успешно выполнена.");
+                            Console.WriteLine("РњРёРіСЂР°С†РёСЏ СѓСЃРїРµС€РЅРѕ РІС‹РїРѕР»РЅРµРЅР°.");
                         }
                     }
                 }
-                // Но в этой ветке мы в любом случае считаем, что всё ок и можно работать дальше
+                // РќРѕ РІ СЌС‚РѕР№ РІРµС‚РєРµ РјС‹ РІ Р»СЋР±РѕРј СЃР»СѓС‡Р°Рµ СЃС‡РёС‚Р°РµРј, С‡С‚Рѕ РІСЃС‘ РѕРє Рё РјРѕР¶РЅРѕ СЂР°Р±РѕС‚Р°С‚СЊ РґР°Р»СЊС€Рµ
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка выполнения миграции: {ex.Message}");
+                Console.WriteLine($"РћС€РёР±РєР° РІС‹РїРѕР»РЅРµРЅРёСЏ РјРёРіСЂР°С†РёРё: {ex.Message}");
                 return false;
             }
         } 

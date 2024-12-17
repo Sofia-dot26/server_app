@@ -1,4 +1,4 @@
-using Auth;
+п»їusing Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ServerApp;
@@ -39,17 +39,17 @@ namespace Reports
                 _ => null
             };
             string reportTypeRus = reportType switch {
-                REPORT_CONSUMPTION => "по расходу материалов",
-                REPORT_AVERAGE_CONSUMPTION => "по среднему расходу материалов",
-                REPORT_REMAINING_MATERIALS => "по остатку материалов",
-                REPORT_SUPPLIES => "по поставкам",
+                REPORT_CONSUMPTION => "РїРѕ СЂР°СЃС…РѕРґСѓ РјР°С‚РµСЂРёР°Р»РѕРІ",
+                REPORT_AVERAGE_CONSUMPTION => "РїРѕ СЃСЂРµРґРЅРµРјСѓ СЂР°СЃС…РѕРґСѓ РјР°С‚РµСЂРёР°Р»РѕРІ",
+                REPORT_REMAINING_MATERIALS => "РїРѕ РѕСЃС‚Р°С‚РєСѓ РјР°С‚РµСЂРёР°Р»РѕРІ",
+                REPORT_SUPPLIES => "РїРѕ РїРѕСЃС‚Р°РІРєР°Рј",
                 _ => reportType 
             };
             bool success = report != null;
 
             return new {
                 success,
-                message = success ? $"Отчёт {reportTypeRus} сформирован" : $"Ошибка формирования отчёта {reportTypeRus}",
+                message = success ? $"РћС‚С‡С‘С‚ {reportTypeRus} СЃС„РѕСЂРјРёСЂРѕРІР°РЅ" : $"РћС€РёР±РєР° С„РѕСЂРјРёСЂРѕРІР°РЅРёСЏ РѕС‚С‡С‘С‚Р° {reportTypeRus}",
                 report
             };
         }
@@ -68,8 +68,8 @@ namespace Reports
 
         public dynamic GenerateConsumptionReport(DateTime? start, DateTime? end, int authorId, bool previewOnly) 
         {
-            string title = "Отчёт по расходу материалов";
-            string period = $"с {start?.ToString("dd.MM.yyyy") ?? "начала учёта"} по {end?.ToString("dd.MM.yyyy") ?? "конец учёта"}";
+            string title = "РћС‚С‡С‘С‚ РїРѕ СЂР°СЃС…РѕРґСѓ РјР°С‚РµСЂРёР°Р»РѕРІ";
+            string period = $"СЃ {start?.ToString("dd.MM.yyyy") ?? "РЅР°С‡Р°Р»Р° СѓС‡С‘С‚Р°"} РїРѕ {end?.ToString("dd.MM.yyyy") ?? "РєРѕРЅРµС† СѓС‡С‘С‚Р°"}";
             string query = "SELECT m.name, SUM(sm.quantity) AS total_quantity, m.unit " +
                            "FROM SpentMaterials sm " +
                            "JOIN Materials m ON sm.material_id = m.id " +
@@ -93,12 +93,12 @@ namespace Reports
             dynamic result = new {
                 type = "table",
                 report_type = REPORT_CONSUMPTION,
-                legend = $"{title}<br>\nЗа период {period}",
+                legend = $"{title}<br>\nР—Р° РїРµСЂРёРѕРґ {period}",
                 headers = new
                 {
-                    name = "Материал",
-                    total_quantity = "Сумма расхода",
-                    unit = "Единица"
+                    name = "РњР°С‚РµСЂРёР°Р»",
+                    total_quantity = "РЎСѓРјРјР° СЂР°СЃС…РѕРґР°",
+                    unit = "Р•РґРёРЅРёС†Р°"
                 },
                 values = lines
             };
@@ -113,10 +113,10 @@ namespace Reports
 
         public dynamic GenerateAverageConsumptionReport(DateTime start, DateTime end, int authorId, bool previewOnly) 
         {
-            string title = "Отчёт по среднему расходу материалов";
-            string period = $"с {start.ToString("dd.MM.yyyy") ?? "начала учёта"} по {end.ToString("dd.MM.yyyy") ?? "конец учёта"}";
+            string title = "РћС‚С‡С‘С‚ РїРѕ СЃСЂРµРґРЅРµРјСѓ СЂР°СЃС…РѕРґСѓ РјР°С‚РµСЂРёР°Р»РѕРІ";
+            string period = $"СЃ {start.ToString("dd.MM.yyyy") ?? "РЅР°С‡Р°Р»Р° СѓС‡С‘С‚Р°"} РїРѕ {end.ToString("dd.MM.yyyy") ?? "РєРѕРЅРµС† СѓС‡С‘С‚Р°"}";
 
-            // Количество дней в периоде
+            // РљРѕР»РёС‡РµСЃС‚РІРѕ РґРЅРµР№ РІ РїРµСЂРёРѕРґРµ
             int daysInPeriod = (end - start).Days + 1;
 
             string query = @"
@@ -152,17 +152,17 @@ namespace Reports
             {
                 type = "table",
                 report_type = REPORT_AVERAGE_CONSUMPTION,
-                legend = $"{title} <br>\nЗа период {period}",
+                legend = $"{title} <br>\nР—Р° РїРµСЂРёРѕРґ {period}",
                 headers = new
                 {
-                    name = "Материал",
-                    average_daily = "Средний расход",
-                    unit = "Единица"
+                    name = "РњР°С‚РµСЂРёР°Р»",
+                    average_daily = "РЎСЂРµРґРЅРёР№ СЂР°СЃС…РѕРґ",
+                    unit = "Р•РґРёРЅРёС†Р°"
                 },
                 values = lines
             };
 
-            // Сохраняем отчёт, если не превью
+            // РЎРѕС…СЂР°РЅСЏРµРј РѕС‚С‡С‘С‚, РµСЃР»Рё РЅРµ РїСЂРµРІСЊСЋ
             if (!previewOnly)
             {
                 SaveReport(REPORT_AVERAGE_CONSUMPTION, start, end, JsonSerializer.Serialize(result), authorId);
@@ -174,8 +174,8 @@ namespace Reports
 
         public dynamic GenerateRemainingMaterialsReport(int authorId, bool previewOnly) 
         {
-            string title = "Отчёт по остаткам материалов";
-            //string header = "Название материала\tСостояние";
+            string title = "РћС‚С‡С‘С‚ РїРѕ РѕСЃС‚Р°С‚РєР°Рј РјР°С‚РµСЂРёР°Р»РѕРІ";
+            //string header = "РќР°Р·РІР°РЅРёРµ РјР°С‚РµСЂРёР°Р»Р°\tРЎРѕСЃС‚РѕСЏРЅРёРµ";
 
             string query = @"SELECT m.id, m.name, COALESCE(supply_total.quantity, 0) - COALESCE(spent_total.quantity, 0) AS balance
 FROM Materials m
@@ -192,7 +192,7 @@ ORDER BY m.id;";
             var lines = results.Select(row => new {
                 name = row["name"],
                 balance = row["balance"],
-                status = int.Parse(row["balance"]?.ToString() ?? "0") > 0 ? "<div class=\"green\">В наличии</div>" : "Израсходован"
+                status = int.Parse(row["balance"]?.ToString() ?? "0") > 0 ? "<div class=\"green\">Р’ РЅР°Р»РёС‡РёРё</div>" : "РР·СЂР°СЃС…РѕРґРѕРІР°РЅ"
             });
 
             dynamic result = new
@@ -202,9 +202,9 @@ ORDER BY m.id;";
                 legend = title,
                 headers = new
                 {
-                    name = "Материал",
-                    balance = "Остаток",
-                    status = "Статус"
+                    name = "РњР°С‚РµСЂРёР°Р»",
+                    balance = "РћСЃС‚Р°С‚РѕРє",
+                    status = "РЎС‚Р°С‚СѓСЃ"
                 },
                 values = lines
             };
@@ -219,7 +219,7 @@ ORDER BY m.id;";
 
         public dynamic GenerateSuppliesReport(int authorId, bool previewOnly)
         {
-            string title = "Отчёт по поставкам";
+            string title = "РћС‚С‡С‘С‚ РїРѕ РїРѕСЃС‚Р°РІРєР°Рј";
 
             string query = "SELECT su.id, su.date, s.name AS supplier, m.name AS material, su.quantity, m.unit " +
                            "FROM Supplies su " +
@@ -246,11 +246,11 @@ ORDER BY m.id;";
                 headers = new
                 {
                     id = "ID",
-                    date = "Дата поставки",
-                    supplier = "Поставщик",
-                    material = "Материал",
-                    quantity = "Количество",
-                    unit = "Единица"
+                    date = "Р”Р°С‚Р° РїРѕСЃС‚Р°РІРєРё",
+                    supplier = "РџРѕСЃС‚Р°РІС‰РёРє",
+                    material = "РњР°С‚РµСЂРёР°Р»",
+                    quantity = "РљРѕР»РёС‡РµСЃС‚РІРѕ",
+                    unit = "Р•РґРёРЅРёС†Р°"
                 },
                 values = lines
             };
@@ -308,7 +308,7 @@ ORDER BY m.id;";
             return new
             {
                 success,
-                message = success ? "Отчёт удалён." : "Ошибка при удалении отчёта."
+                message = success ? "РћС‚С‡С‘С‚ СѓРґР°Р»С‘РЅ." : "РћС€РёР±РєР° РїСЂРё СѓРґР°Р»РµРЅРёРё РѕС‚С‡С‘С‚Р°."
             };
         }
 
@@ -331,7 +331,7 @@ ORDER BY m.id;";
                         ? DateTime.Parse(context.Request.Query["period_end"]) : DateTime.Now;
                     result = string.IsNullOrEmpty(report_type) ? new { 
                         success = false,
-                        message = "Ошибка: выберите тип отчёта"
+                        message = "РћС€РёР±РєР°: РІС‹Р±РµСЂРёС‚Рµ С‚РёРї РѕС‚С‡С‘С‚Р°"
                     } : _reportService.AddReport(report_type, period_start, period_end, authorId);
                     break;
                 case ReportService.REPORT_CONSUMPTION:
@@ -373,7 +373,7 @@ ORDER BY m.id;";
 
                 default:
                     context.Response.StatusCode = 404;
-                    result = new { message = "Метод не найден." };
+                    result = new { message = "РњРµС‚РѕРґ РЅРµ РЅР°Р№РґРµРЅ." };
                     break;
             }
 
@@ -385,38 +385,38 @@ ORDER BY m.id;";
 
             interfaceData.Reports = new
             {
-                description = "Представление для просмотра отчетов",
+                description = "РџСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ РґР»СЏ РїСЂРѕСЃРјРѕС‚СЂР° РѕС‚С‡РµС‚РѕРІ",
                 controller = "reports",
                 header = new
                 {
                     id = "ID",
-                    date_human = "Сформирован",
-                    author = "Автор",
-                    type_human = "Тип отчёта",
-                    date_start = "Дата, с",
-                    date_end = "Дата, по",
+                    date_human = "РЎС„РѕСЂРјРёСЂРѕРІР°РЅ",
+                    author = "РђРІС‚РѕСЂ",
+                    type_human = "РўРёРї РѕС‚С‡С‘С‚Р°",
+                    date_start = "Р”Р°С‚Р°, СЃ",
+                    date_end = "Р”Р°С‚Р°, РїРѕ",
                 },
                 add = new
                 {
                     report_type = new
                     {
-                        text = "Тип отчёта",
+                        text = "РўРёРї РѕС‚С‡С‘С‚Р°",
                         type = "radio-images",
                         values = new
                         {
-                            consumption = "по расходу материалов",
-                            average_consumption = "по среднему расходу",
-                            remaining_materials = "по остаткам материалов",
-                            supplies = "по поставкам"
+                            consumption = "РїРѕ СЂР°СЃС…РѕРґСѓ РјР°С‚РµСЂРёР°Р»РѕРІ",
+                            average_consumption = "РїРѕ СЃСЂРµРґРЅРµРјСѓ СЂР°СЃС…РѕРґСѓ",
+                            remaining_materials = "РїРѕ РѕСЃС‚Р°С‚РєР°Рј РјР°С‚РµСЂРёР°Р»РѕРІ",
+                            supplies = "РїРѕ РїРѕСЃС‚Р°РІРєР°Рј"
                         }
                     },
-                    period_start = new { text = "Дата, с", type = "date" },
-                    period_end = new { text = "Дата, по", type = "date" },
+                    period_start = new { text = "Р”Р°С‚Р°, СЃ", type = "date" },
+                    period_end = new { text = "Р”Р°С‚Р°, РїРѕ", type = "date" },
                 },
                 viewMode = "table",
                 noedit = true,
-                title = "отчёт",
-                title_main = "Отчёты"
+                title = "РѕС‚С‡С‘С‚",
+                title_main = "РћС‚С‡С‘С‚С‹"
             };
             return interfaceData;
         }
@@ -428,31 +428,31 @@ ORDER BY m.id;";
         public string? report_type { get; set; }
 
         public string type_human { get => report_type switch { 
-            ReportService.REPORT_CONSUMPTION => "Расход",
-            ReportService.REPORT_AVERAGE_CONSUMPTION => "Расход средний",
-            ReportService.REPORT_REMAINING_MATERIALS => "Остатки",
-            ReportService.REPORT_SUPPLIES => "Поставки",
-            _ => report_type ?? "н/д"
+            ReportService.REPORT_CONSUMPTION => "Р Р°СЃС…РѕРґ",
+            ReportService.REPORT_AVERAGE_CONSUMPTION => "Р Р°СЃС…РѕРґ СЃСЂРµРґРЅРёР№",
+            ReportService.REPORT_REMAINING_MATERIALS => "РћСЃС‚Р°С‚РєРё",
+            ReportService.REPORT_SUPPLIES => "РџРѕСЃС‚Р°РІРєРё",
+            _ => report_type ?? "РЅ/Рґ"
         }; }
         public DateTime? report_date { get; set; }
         public string date_human
         {
             get => report_date == null ? "" :
                 (report_date?.ToString("dd.MM.yyyy") == ReportService.today()
-                    ? "сегодня" :
-                        (report_date == DateTime.MinValue ? "нет" : report_date?.ToString("dd.MM.yyyy") ?? ""));
+                    ? "СЃРµРіРѕРґРЅСЏ" :
+                        (report_date == DateTime.MinValue ? "РЅРµС‚" : report_date?.ToString("dd.MM.yyyy") ?? ""));
         }
         public string author { get; set; }
         public DateTime? period_start { get; set; }
         public string date_start { get => period_start == null ? "" : 
                 (period_start?.ToString("dd.MM.yyyy") == ReportService.today() 
-                    ? "сегодня" :
-                        (period_start == DateTime.MinValue ? "нет" : period_start?.ToString("dd.MM.yyyy") ?? "")); }
+                    ? "СЃРµРіРѕРґРЅСЏ" :
+                        (period_start == DateTime.MinValue ? "РЅРµС‚" : period_start?.ToString("dd.MM.yyyy") ?? "")); }
         public DateTime? period_end { get; set; }
         public string date_end { get => period_start == null ? "" :
                 (period_end?.ToString("dd.MM.yyyy") == ReportService.today()
-                    ? "сегодня" :
-                        (period_end == DateTime.MinValue ? "нет" : period_end?.ToString("dd.MM.yyyy") ?? "")); }
+                    ? "СЃРµРіРѕРґРЅСЏ" :
+                        (period_end == DateTime.MinValue ? "РЅРµС‚" : period_end?.ToString("dd.MM.yyyy") ?? "")); }
         public string? content { get; set; }
 
         public dynamic? data { get; set; }

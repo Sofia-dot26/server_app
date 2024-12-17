@@ -1,4 +1,4 @@
-using Auth;
+п»їusing Auth;
 using Microsoft.AspNetCore.Http;
 using ServerApp;
 using System.Dynamic;
@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 
 namespace Users
 {
-    // Управление пользователями
+    // РЈРїСЂР°РІР»РµРЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏРјРё
     public interface IUserService
     {
         int? AddUser(string login, string password, string role, out string error);
@@ -18,7 +18,7 @@ namespace Users
     }
 
 
-    // Сервис для пользователей
+    // РЎРµСЂРІРёСЃ РґР»СЏ РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№
     public class UserService : IUserService
     {
         public static string getPasswordHash(string? password)
@@ -33,8 +33,8 @@ namespace Users
             {
                 user = GetUser(login);
             }
-            error = (user != null ? "Пользователь уже существует. " : "") + (login == "" ? "Логин не указан. " : "") + (password == "" ? "Пароль не указан. " : "") + (role == "" ? "Роль не указана." : "");
-            // SQL-запрос для добавления пользователя
+            error = (user != null ? "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚. " : "") + (login == "" ? "Р›РѕРіРёРЅ РЅРµ СѓРєР°Р·Р°РЅ. " : "") + (password == "" ? "РџР°СЂРѕР»СЊ РЅРµ СѓРєР°Р·Р°РЅ. " : "") + (role == "" ? "Р РѕР»СЊ РЅРµ СѓРєР°Р·Р°РЅР°." : "");
+            // SQL-Р·Р°РїСЂРѕСЃ РґР»СЏ РґРѕР±Р°РІР»РµРЅРёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
             string sql = "INSERT INTO Users (login, password_hash, role) VALUES (@login, @password_hash, @role) RETURNING id";
             var passwordHash = getPasswordHash(password);
             var parameters = new Dictionary<string, object>{
@@ -52,7 +52,7 @@ namespace Users
             User? user_byid = null;
             User? user_bylogin = null;
 
-            // Проверка существования пользователя по ID и логину
+            // РџСЂРѕРІРµСЂРєР° СЃСѓС‰РµСЃС‚РІРѕРІР°РЅРёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РїРѕ ID Рё Р»РѕРіРёРЅСѓ
             if (login != null && login != "")
             {
                 user_bylogin = GetUser(login);
@@ -62,24 +62,24 @@ namespace Users
                 user_byid = GetUser(id);
             }
 
-            // Проверяем на существование пользователей с одинаковым логином или ID
+            // РџСЂРѕРІРµСЂСЏРµРј РЅР° СЃСѓС‰РµСЃС‚РІРѕРІР°РЅРёРµ РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ СЃ РѕРґРёРЅР°РєРѕРІС‹Рј Р»РѕРіРёРЅРѕРј РёР»Рё ID
            
 
-            // Генерируем ошибку, если пользователи не найдены
-            error = (user_byid == null ? $"Пользователь с ID {id} не существует. " : "") +
-                    ((user_bylogin != null && user_bylogin.id != id) ? $"Пользователь с логином {login} уже существует. " : "");
+            // Р“РµРЅРµСЂРёСЂСѓРµРј РѕС€РёР±РєСѓ, РµСЃР»Рё РїРѕР»СЊР·РѕРІР°С‚РµР»Рё РЅРµ РЅР°Р№РґРµРЅС‹
+            error = (user_byid == null ? $"РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ ID {id} РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚. " : "") +
+                    ((user_bylogin != null && user_bylogin.id != id) ? $"РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ Р»РѕРіРёРЅРѕРј {login} СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚. " : "");
 
-            // Если ошибка не пуста, прерываем выполнение
+            // Р•СЃР»Рё РѕС€РёР±РєР° РЅРµ РїСѓСЃС‚Р°, РїСЂРµСЂС‹РІР°РµРј РІС‹РїРѕР»РЅРµРЅРёРµ
             if (!string.IsNullOrEmpty(error))
             {
                 return false;
             }
 
-            // Строим запрос, учитывая, что некоторые параметры могут быть пустыми
+            // РЎС‚СЂРѕРёРј Р·Р°РїСЂРѕСЃ, СѓС‡РёС‚С‹РІР°СЏ, С‡С‚Рѕ РЅРµРєРѕС‚РѕСЂС‹Рµ РїР°СЂР°РјРµС‚СЂС‹ РјРѕРіСѓС‚ Р±С‹С‚СЊ РїСѓСЃС‚С‹РјРё
             List<string> setClauses = new();
             var parameters = new Dictionary<string, object> { { "@id", id } };
 
-            // Добавляем только те параметры, которые не пустые
+            // Р”РѕР±Р°РІР»СЏРµРј С‚РѕР»СЊРєРѕ С‚Рµ РїР°СЂР°РјРµС‚СЂС‹, РєРѕС‚РѕСЂС‹Рµ РЅРµ РїСѓСЃС‚С‹Рµ
             if (!string.IsNullOrEmpty(login))
             {
                 setClauses.Add("login = @login");
@@ -98,17 +98,17 @@ namespace Users
                 parameters.Add("@role", role);
             }
 
-            // Если все параметры пустые, не обновляем ничего
+            // Р•СЃР»Рё РІСЃРµ РїР°СЂР°РјРµС‚СЂС‹ РїСѓСЃС‚С‹Рµ, РЅРµ РѕР±РЅРѕРІР»СЏРµРј РЅРёС‡РµРіРѕ
             if (setClauses.Count == 0)
             {
-                error = "Нет полей для обновления";
+                error = "РќРµС‚ РїРѕР»РµР№ РґР»СЏ РѕР±РЅРѕРІР»РµРЅРёСЏ";
                 return false;
             }
 
-            // Строим финальный SQL запрос
+            // РЎС‚СЂРѕРёРј С„РёРЅР°Р»СЊРЅС‹Р№ SQL Р·Р°РїСЂРѕСЃ
             string sql = $"UPDATE Users SET {string.Join(", ", setClauses)} WHERE id = @id";
 
-            // Выполняем запрос
+            // Р’С‹РїРѕР»РЅСЏРµРј Р·Р°РїСЂРѕСЃ
             return DatabaseHelper.ExecuteNonQuery(sql, parameters);
         }
 
@@ -167,20 +167,20 @@ namespace Users
         {
             int? addUserId = _userService.AddUser(login, password, role, out string error);
             bool success = addUserId > 0;
-            return new { success, message = success ? "Пользователь добавлен." : $"Ошибка при добавлении пользователя: {error}", id = addUserId };
+            return new { success, message = success ? "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РґРѕР±Р°РІР»РµРЅ." : $"РћС€РёР±РєР° РїСЂРё РґРѕР±Р°РІР»РµРЅРёРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ: {error}", id = addUserId };
         }
 
         public object Update(int id, string login, string password, string role)
         {
             bool success = _userService.UpdateUser(id, login, password, role, out string error);
-            return new { success, message = success ? "Пользователь обновлён." : "Ошибка при обновлении пользователя." };
+            return new { success, message = success ? "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РѕР±РЅРѕРІР»С‘РЅ." : "РћС€РёР±РєР° РїСЂРё РѕР±РЅРѕРІР»РµРЅРёРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ." };
                
         }
 
         public object Delete(int id)
         {
             bool success = _userService.DeleteUser(id);
-            return new { success, message = success ? "Пользователь удалён." : "Ошибка при удалении пользователя." };
+            return new { success, message = success ? "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СѓРґР°Р»С‘РЅ." : "РћС€РёР±РєР° РїСЂРё СѓРґР°Р»РµРЅРёРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ." };
         }
 
         public User? Get(int user_id)
@@ -213,7 +213,7 @@ namespace Users
 
                 case "delete":
                     id = int.Parse(context.Request.Query["id"]);
-                    result = id == user?.id ? new { message = "Роскомнадзор запрещает делать это" } : this.Delete(id);
+                    result = id == user?.id ? new { message = "Р РѕСЃРєРѕРјРЅР°РґР·РѕСЂ Р·Р°РїСЂРµС‰Р°РµС‚ РґРµР»Р°С‚СЊ СЌС‚Рѕ" } : this.Delete(id);
                     break;
                 case "list":
                     result = _userService.GetAllUsers();
@@ -221,7 +221,7 @@ namespace Users
 
                 default:
                     context.Response.StatusCode = 404;
-                    result = new { message = "Метод не найден." };
+                    result = new { message = "РњРµС‚РѕРґ РЅРµ РЅР°Р№РґРµРЅ." };
                     break;
             }
             return result;
@@ -232,33 +232,33 @@ namespace Users
             dynamic interfaceData = new ExpandoObject();
             interfaceData.Users = new
             {
-                description = "Представление для управления пользователями",
+                description = "РџСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ РґР»СЏ СѓРїСЂР°РІР»РµРЅРёСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏРјРё",
                 controller = "users",
                 header = new
                 {
                     id = "ID",
-                    login = "Логин",
-                    password = "Пароль",
-                    role_rus = "Роль"
+                    login = "Р›РѕРіРёРЅ",
+                    password = "РџР°СЂРѕР»СЊ",
+                    role_rus = "Р РѕР»СЊ"
                 },
                 add = new
                 {
-                    login = new { text = "Логин", type = "text" },
-                    password = new { text = "Пароль", type = "password" },
+                    login = new { text = "Р›РѕРіРёРЅ", type = "text" },
+                    password = new { text = "РџР°СЂРѕР»СЊ", type = "password" },
                     role = new
                     {
-                        text = "Роль",
+                        text = "Р РѕР»СЊ",
                         type = "radio-images",
                         values = new
                         {
-                            admin = "Администратор",
-                            dir = "Начальник подразделения",
-                            acc = "Учётчик"
+                            admin = "РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ",
+                            dir = "РќР°С‡Р°Р»СЊРЅРёРє РїРѕРґСЂР°Р·РґРµР»РµРЅРёСЏ",
+                            acc = "РЈС‡С‘С‚С‡РёРє"
                         }
                     },
                 },
-                title = "пользователя",
-                title_main = "Пользователи"
+                title = "РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ",
+                title_main = "РџРѕР»СЊР·РѕРІР°С‚РµР»Рё"
             };
             return interfaceData;
         } 
@@ -270,7 +270,7 @@ namespace Users
         public string? login { get; set; }
         public string? password_hash { get; set; }
         public string? role { get; set; }
-        public string? role_rus { get => this.role switch { AuthService.ROLE_ADMIN => "Администратор", AuthService.ROLE_DIRECTOR => "Начальник", AuthService.ROLE_ACCOUNTER => "Учётчик", _ => "" }; }
+        public string? role_rus { get => this.role switch { AuthService.ROLE_ADMIN => "РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ", AuthService.ROLE_DIRECTOR => "РќР°С‡Р°Р»СЊРЅРёРє", AuthService.ROLE_ACCOUNTER => "РЈС‡С‘С‚С‡РёРє", _ => "" }; }
 
         public static User FromDictionary(Dictionary<string, object?> row)
         {

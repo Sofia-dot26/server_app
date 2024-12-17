@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+п»їusing Microsoft.AspNetCore.Http;
 using ServerApp;
 using Suppliers;
 using System.Dynamic;
@@ -55,7 +55,7 @@ namespace Equipment
                 id = Convert.ToInt32(row["id"]),
                 name = Convert.ToString(row["name"]),
                 description = Convert.ToString(row["description"]),
-            } : null; // Если запрос не вернул строк, возвращаем null
+            } : null; // Р•СЃР»Рё Р·Р°РїСЂРѕСЃ РЅРµ РІРµСЂРЅСѓР» СЃС‚СЂРѕРє, РІРѕР·РІСЂР°С‰Р°РµРј null
         } 
 
         public List<Equipment> GetAllEquipment()
@@ -95,7 +95,7 @@ namespace Equipment
                     result = new
                     {
                         success,
-                        message = success ? "Оборудование добавлено." : "Ошибка добавления"
+                        message = success ? "РћР±РѕСЂСѓРґРѕРІР°РЅРёРµ РґРѕР±Р°РІР»РµРЅРѕ." : "РћС€РёР±РєР° РґРѕР±Р°РІР»РµРЅРёСЏ"
                     };
                     break;
 
@@ -107,7 +107,7 @@ namespace Equipment
                     result = new
                     {
                         success,
-                        message = success ? "Оборудование обновлено." : "Ошибка редактирования"
+                        message = success ? "РћР±РѕСЂСѓРґРѕРІР°РЅРёРµ РѕР±РЅРѕРІР»РµРЅРѕ." : "РћС€РёР±РєР° СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ"
                     };
                     break;
 
@@ -117,7 +117,7 @@ namespace Equipment
                     result = new
                     {
                         success,
-                        message = success ? "Оборудование удалено." : "Ошибка удаления"
+                        message = success ? "РћР±РѕСЂСѓРґРѕРІР°РЅРёРµ СѓРґР°Р»РµРЅРѕ." : "РћС€РёР±РєР° СѓРґР°Р»РµРЅРёСЏ"
                     };
                     break;
 
@@ -126,7 +126,7 @@ namespace Equipment
                     result = new
                     {
                         data = _equipmentService.GetEquipment(id),
-                        message = "Оборудование получено."
+                        message = "РћР±РѕСЂСѓРґРѕРІР°РЅРёРµ РїРѕР»СѓС‡РµРЅРѕ."
                     };
                     break;
 
@@ -136,7 +136,7 @@ namespace Equipment
 
                 default:
                     context.Response.StatusCode = 404;
-                    result = new { message = "Метод не найден." };
+                    result = new { message = "РњРµС‚РѕРґ РЅРµ РЅР°Р№РґРµРЅ." };
                     break;
             }
             return result;
@@ -148,21 +148,21 @@ namespace Equipment
 
             interfaceData.Equipment = new
             {
-                description = "Представление для управления техникой",
+                description = "РџСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ РґР»СЏ СѓРїСЂР°РІР»РµРЅРёСЏ С‚РµС…РЅРёРєРѕР№",
                 controller = "equipment",
                 header = new
                 {
                     id = "ID",
-                    name = "Название",
-                    description = "Описание"
+                    name = "РќР°Р·РІР°РЅРёРµ",
+                    description = "РћРїРёСЃР°РЅРёРµ"
                 },
                 add = new
                 {
-                    name = new { text = "Название", type = "text" },
-                    description = new { text = "Описание", type = "text" }
+                    name = new { text = "РќР°Р·РІР°РЅРёРµ", type = "text" },
+                    description = new { text = "РћРїРёСЃР°РЅРёРµ", type = "text" }
                 },
-                title = "технику",
-                title_main = "Техника"
+                title = "С‚РµС…РЅРёРєСѓ",
+                title_main = "РўРµС…РЅРёРєР°"
             };
             return interfaceData;
         } 

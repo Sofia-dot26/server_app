@@ -1,4 +1,4 @@
-using Equipment;
+п»їusing Equipment;
 using Materials;
 using Microsoft.AspNetCore.Http;
 using Reports;
@@ -25,9 +25,9 @@ namespace Auth
 
     public class AuthService : IAuthService
     {
-        public const string ROLE_ADMIN = "admin"; // Администратор
-        public const string ROLE_DIRECTOR = "dir"; // Начальник подразделения
-        public const string ROLE_ACCOUNTER = "acc"; // Учётчик
+        public const string ROLE_ADMIN = "admin"; // РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ
+        public const string ROLE_DIRECTOR = "dir"; // РќР°С‡Р°Р»СЊРЅРёРє РїРѕРґСЂР°Р·РґРµР»РµРЅРёСЏ
+        public const string ROLE_ACCOUNTER = "acc"; // РЈС‡С‘С‚С‡РёРє
 
         public Session? Login(string username, string password, out User? user, out int? error, string ip = "127.0.0.1")
         {
@@ -36,15 +36,15 @@ namespace Auth
             error = null;
             if (user == null)
             {
-                error = -1; // Юзер не существует
+                error = -1; // Р®Р·РµСЂ РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚
             } else {
-                // Проверяем хэш пароля
+                // РџСЂРѕРІРµСЂСЏРµРј С…СЌС€ РїР°СЂРѕР»СЏ
                 var passwordHash = UserService.getPasswordHash(password);
 
                 if (user?.password_hash?.ToString() == passwordHash) {
                     result = this.CreateSession(Convert.ToInt32(user.id), ip);
                 } else {
-                    error = -2; // Неверный пароль
+                    error = -2; // РќРµРІРµСЂРЅС‹Р№ РїР°СЂРѕР»СЊ
                 }
             }
 
@@ -123,15 +123,15 @@ namespace Auth
             int? error = null;
             Session? session = _authService.Login(login, password, out user, out error, ip);
             int? session_id = session?.id;
-            string name = user?.login ?? "товарищ";
+            string name = user?.login ?? "С‚РѕРІР°СЂРёС‰";
             return new { 
                 success = session_id > 0,
                 message = login == "" 
-                    ? "Логин не передан. Укажите его параметром login" 
+                    ? "Р›РѕРіРёРЅ РЅРµ РїРµСЂРµРґР°РЅ. РЈРєР°Р¶РёС‚Рµ РµРіРѕ РїР°СЂР°РјРµС‚СЂРѕРј login" 
                     : (
                         password == "" 
-                            ? "Пароль не передан. Укажите его параметром password" 
-                           : (error == -1 ? $"Пользователь \"{login}\" не существует" : (error == -2 ? "Неверный пароль" : $"Добро пожаловать, {name}!"))
+                            ? "РџР°СЂРѕР»СЊ РЅРµ РїРµСЂРµРґР°РЅ. РЈРєР°Р¶РёС‚Рµ РµРіРѕ РїР°СЂР°РјРµС‚СЂРѕРј password" 
+                           : (error == -1 ? $"РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ \"{login}\" РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚" : (error == -2 ? "РќРµРІРµСЂРЅС‹Р№ РїР°СЂРѕР»СЊ" : $"Р”РѕР±СЂРѕ РїРѕР¶Р°Р»РѕРІР°С‚СЊ, {name}!"))
                         ),
                 user,
                 session,
@@ -146,7 +146,7 @@ namespace Auth
         public object Logout(int sessionId)
         {
             bool logout_ok = _authService.Logout(sessionId);
-            return new { success = logout_ok, message = logout_ok ? "Выход выполнен." : "Ошибка выхода" };
+            return new { success = logout_ok, message = logout_ok ? "Р’С‹С…РѕРґ РІС‹РїРѕР»РЅРµРЅ." : "РћС€РёР±РєР° РІС‹С…РѕРґР°" };
         }
 
         public bool Validate(int sessionId)
@@ -163,17 +163,17 @@ namespace Auth
         {
             int? session_id = null;
 
-            // 1. Проверка заголовка "X-Session-ID"
+            // 1. РџСЂРѕРІРµСЂРєР° Р·Р°РіРѕР»РѕРІРєР° "X-Session-ID"
             if (context.Request.Headers.TryGetValue("X-Session-ID", out var headerValue) && int.TryParse(headerValue, out var id))
             {
                 session_id = id;
             }
-            // 2. Проверка параметра в строке запроса (GET)
+            // 2. РџСЂРѕРІРµСЂРєР° РїР°СЂР°РјРµС‚СЂР° РІ СЃС‚СЂРѕРєРµ Р·Р°РїСЂРѕСЃР° (GET)
             else if (context.Request.Query.TryGetValue("session_id", out var queryValue) && int.TryParse(queryValue, out id))
             {
                 session_id = id;
             }
-            // 3. Проверка тела запроса (POST)
+            // 3. РџСЂРѕРІРµСЂРєР° С‚РµР»Р° Р·Р°РїСЂРѕСЃР° (POST)
             else if (context.Request.Method == "POST" && context.Request.HasJsonContentType())
             {
                 using var reader = new StreamReader(context.Request.Body);
@@ -191,7 +191,7 @@ namespace Auth
                     }
                     catch
                     {
-                        // Игнорируем ошибки десериализации
+                        // РРіРЅРѕСЂРёСЂСѓРµРј РѕС€РёР±РєРё РґРµСЃРµСЂРёР°Р»РёР·Р°С†РёРё
                     }
                 }
             }
@@ -255,7 +255,7 @@ namespace Auth
                     break;
                 default:
                     context.Response.StatusCode = 404;
-                    result = new { message = "Метод не найден." };
+                    result = new { message = "РњРµС‚РѕРґ РЅРµ РЅР°Р№РґРµРЅ." };
                     break;
             }
             return result;
@@ -270,7 +270,7 @@ namespace Auth
         public DateTime expires_at { get; set; }
         public string? ip { get; set; }
 
-        // Конструктор для создания объекта из результата запроса
+        // РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РґР»СЏ СЃРѕР·РґР°РЅРёСЏ РѕР±СЉРµРєС‚Р° РёР· СЂРµР·СѓР»СЊС‚Р°С‚Р° Р·Р°РїСЂРѕСЃР°
         public static Session FromDictionary(Dictionary<string, object?> row)
         {
             return new Session

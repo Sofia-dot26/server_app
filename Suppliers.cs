@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+п»їusing Microsoft.AspNetCore.Http;
 using ServerApp;
 using System.Dynamic;
 using System.Text.Json;
@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 namespace Suppliers
 {
-    // Управление поставщиками
+    // РЈРїСЂР°РІР»РµРЅРёРµ РїРѕСЃС‚Р°РІС‰РёРєР°РјРё
     public interface ISupplierService
     {
         bool AddSupplier(string name, string contactInfo);
@@ -62,7 +62,7 @@ namespace Suppliers
                 id = Convert.ToInt32(row["id"]),
                 name = Convert.ToString(row["name"]),
                 contactInfo = Convert.ToString(row["contact_info"])
-            } : null; // Если запрос не вернул строк, возвращаем null
+            } : null; // Р•СЃР»Рё Р·Р°РїСЂРѕСЃ РЅРµ РІРµСЂРЅСѓР» СЃС‚СЂРѕРє, РІРѕР·РІСЂР°С‰Р°РµРј null
         }
 
         public List<Supplier> GetAllSuppliers()
@@ -95,7 +95,7 @@ namespace Suppliers
             bool success = _supplierService.AddSupplier(name, contactInfo);
             return new {
                 success,
-                message = success ? "Поставщик добавлен" : "Ошибка добавления поставщика"
+                message = success ? "РџРѕСЃС‚Р°РІС‰РёРє РґРѕР±Р°РІР»РµРЅ" : "РћС€РёР±РєР° РґРѕР±Р°РІР»РµРЅРёСЏ РїРѕСЃС‚Р°РІС‰РёРєР°"
             };
         }
 
@@ -104,7 +104,7 @@ namespace Suppliers
             bool success = _supplierService.UpdateSupplier(id, name, contactInfo);
             return new {
                 success,
-                message = success ? "Поставщик обновлён" : "Ошибка обновления поставщика"
+                message = success ? "РџРѕСЃС‚Р°РІС‰РёРє РѕР±РЅРѕРІР»С‘РЅ" : "РћС€РёР±РєР° РѕР±РЅРѕРІР»РµРЅРёСЏ РїРѕСЃС‚Р°РІС‰РёРєР°"
             };
         }
 
@@ -114,7 +114,7 @@ namespace Suppliers
             return new
             {
                 success,
-                message = success ? "Поставщик удалён" : "Ошибка удаления поставщика"
+                message = success ? "РџРѕСЃС‚Р°РІС‰РёРє СѓРґР°Р»С‘РЅ" : "РћС€РёР±РєР° СѓРґР°Р»РµРЅРёСЏ РїРѕСЃС‚Р°РІС‰РёРєР°"
             };
         }
 
@@ -122,7 +122,7 @@ namespace Suppliers
         {
             var supplier = _supplierService.GetSupplier(id);
             return new {
-                message = supplier == null ? "Поставщик не найден" : "Поставщик получен",
+                message = supplier == null ? "РџРѕСЃС‚Р°РІС‰РёРє РЅРµ РЅР°Р№РґРµРЅ" : "РџРѕСЃС‚Р°РІС‰РёРє РїРѕР»СѓС‡РµРЅ",
                 data = supplier
             };
         }
@@ -157,7 +157,7 @@ namespace Suppliers
                     break;
                 default:
                     context.Response.StatusCode = 404;
-                    result = new { message = "Метод не найден" };
+                    result = new { message = "РњРµС‚РѕРґ РЅРµ РЅР°Р№РґРµРЅ" };
                     break;
             }
             return result;
@@ -168,21 +168,21 @@ namespace Suppliers
 
             interfaceData.Suppliers = new
             {
-                description = "Представление для управления поставщиками",
+                description = "РџСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ РґР»СЏ СѓРїСЂР°РІР»РµРЅРёСЏ РїРѕСЃС‚Р°РІС‰РёРєР°РјРё",
                 controller = "suppliers",
                 header = new
                 {
                     id = "ID",
-                    name = "Название",
-                    contactInfo = "Контактная информация"
+                    name = "РќР°Р·РІР°РЅРёРµ",
+                    contactInfo = "РљРѕРЅС‚Р°РєС‚РЅР°СЏ РёРЅС„РѕСЂРјР°С†РёСЏ"
                 },
                 add = new
                 {
-                    name = new { text = "Название", type = "text" },
-                    contact_info = new { text = "Контактная информация", type = "text" }
+                    name = new { text = "РќР°Р·РІР°РЅРёРµ", type = "text" },
+                    contact_info = new { text = "РљРѕРЅС‚Р°РєС‚РЅР°СЏ РёРЅС„РѕСЂРјР°С†РёСЏ", type = "text" }
                 },
-                title = "поставщика",
-                title_main = "Поставщики"
+                title = "РїРѕСЃС‚Р°РІС‰РёРєР°",
+                title_main = "РџРѕСЃС‚Р°РІС‰РёРєРё"
             };
             return interfaceData;
         } 

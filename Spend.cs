@@ -1,4 +1,4 @@
-using Materials;
+п»їusing Materials;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ServerApp;
@@ -60,7 +60,7 @@ namespace Spend
                 material_id = Convert.ToInt32(row["material_id"]),
                 quantity = Convert.ToInt32(row["quantity"]),
                 date = Convert.ToDateTime(row["date"])
-            } : null; // Если запрос не вернул строк, возвращаем null
+            } : null; // Р•СЃР»Рё Р·Р°РїСЂРѕСЃ РЅРµ РІРµСЂРЅСѓР» СЃС‚СЂРѕРє, РІРѕР·РІСЂР°С‰Р°РµРј null
         } 
 
         public List<Spend> GetAllSpentMaterials() 
@@ -103,7 +103,7 @@ namespace Spend
             return new
             {
                 success,
-                message = success ? "Трата материалов добавлена." : "Ошибка при добавлении траты материалов."
+                message = success ? "РўСЂР°С‚Р° РјР°С‚РµСЂРёР°Р»РѕРІ РґРѕР±Р°РІР»РµРЅР°." : "РћС€РёР±РєР° РїСЂРё РґРѕР±Р°РІР»РµРЅРёРё С‚СЂР°С‚С‹ РјР°С‚РµСЂРёР°Р»РѕРІ."
             };
         } 
 
@@ -113,7 +113,7 @@ namespace Spend
             return new
             {
                 success,
-                message = success ? "Трата обновлена." : "Ошибка при обновлении траты."
+                message = success ? "РўСЂР°С‚Р° РѕР±РЅРѕРІР»РµРЅР°." : "РћС€РёР±РєР° РїСЂРё РѕР±РЅРѕРІР»РµРЅРёРё С‚СЂР°С‚С‹."
             };
         } 
 
@@ -123,7 +123,7 @@ namespace Spend
             return new
             {
                 success,
-                message = success ? "Трата удалена." : "Ошибка при удалении траты."
+                message = success ? "РўСЂР°С‚Р° СѓРґР°Р»РµРЅР°." : "РћС€РёР±РєР° РїСЂРё СѓРґР°Р»РµРЅРёРё С‚СЂР°С‚С‹."
             };
         } 
 
@@ -132,7 +132,7 @@ namespace Spend
         {
             var Spend = _SpendService.GetSpend(id);
             return new {
-                message = Spend == null ? "Трата не найдена" : "Трата получена",
+                message = Spend == null ? "РўСЂР°С‚Р° РЅРµ РЅР°Р№РґРµРЅР°" : "РўСЂР°С‚Р° РїРѕР»СѓС‡РµРЅР°",
                 data = Spend
             };
         }
@@ -153,13 +153,13 @@ namespace Spend
                     Material? material = material_id > 0 ? (new MaterialService()).GetMaterial(material_id) : null;
                     if (material == null)
                     {
-                        error += "Ошибка: материал не выбран. ";
+                        error += "РћС€РёР±РєР°: РјР°С‚РµСЂРёР°Р» РЅРµ РІС‹Р±СЂР°РЅ. ";
                     }
 
                     var quantity = ServerApp.ServerApp.getInt(context, "quantity") ?? 0;
                     if (quantity <= 0)
                     {
-                        error += "Ошибка: количество должно быть больше нуля.";
+                        error += "РћС€РёР±РєР°: РєРѕР»РёС‡РµСЃС‚РІРѕ РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ Р±РѕР»СЊС€Рµ РЅСѓР»СЏ.";
                     }
                     var date = ServerApp.ServerApp.getDateTime(context, "date") ?? DateTime.Now;
                     result = string.IsNullOrEmpty(error) ? this.AddSpend(material_id, quantity, date) : new
@@ -173,20 +173,20 @@ namespace Spend
                     var id = ServerApp.ServerApp.getInt(context, "id") ?? 0;
                     if (id <= 0)
                     {
-                        error += "Ошибка: трата не выбрана";
+                        error += "РћС€РёР±РєР°: С‚СЂР°С‚Р° РЅРµ РІС‹Р±СЂР°РЅР°";
                     }
 
                     material_id = ServerApp.ServerApp.getInt(context, "material_id") ?? 0;
                     material = material_id > 0 ? (new MaterialService()).GetMaterial(material_id) : null;
                     if (material == null)
                     {
-                        error += "Ошибка: материал не выбран. ";
+                        error += "РћС€РёР±РєР°: РјР°С‚РµСЂРёР°Р» РЅРµ РІС‹Р±СЂР°РЅ. ";
                     }
 
                     quantity = ServerApp.ServerApp.getInt(context, "quantity") ?? 0;
                     if (quantity <= 0)
                     {
-                        error += "Ошибка: количество должно быть больше нуля.";
+                        error += "РћС€РёР±РєР°: РєРѕР»РёС‡РµСЃС‚РІРѕ РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ Р±РѕР»СЊС€Рµ РЅСѓР»СЏ.";
                     }
 
                     date = ServerApp.ServerApp.getDateTime(context, "date") ?? DateTime.Now;
@@ -213,7 +213,7 @@ namespace Spend
 
                 default:
                     context.Response.StatusCode = 404;
-                    result = new { message = "Метод не найден." };
+                    result = new { message = "РњРµС‚РѕРґ РЅРµ РЅР°Р№РґРµРЅ." };
                     break;
             }
             return result;
@@ -224,24 +224,24 @@ namespace Spend
 
             interfaceData.Spends = new
             {
-                description = "Представление для управления тратами",
+                description = "РџСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ РґР»СЏ СѓРїСЂР°РІР»РµРЅРёСЏ С‚СЂР°С‚Р°РјРё",
                 controller = "spend",
                 header = new
                 {
                     id = "ID",
-                    date_human = "Дата",
-                    material_name = "Материал",
-                    quantity = "Количество",
-                    unit = "Единица"
+                    date_human = "Р”Р°С‚Р°",
+                    material_name = "РњР°С‚РµСЂРёР°Р»",
+                    quantity = "РљРѕР»РёС‡РµСЃС‚РІРѕ",
+                    unit = "Р•РґРёРЅРёС†Р°"
                 },
                 add = new
                 {
-                    material_id = new { text = "Материал", type = "dictionary", controller = "Materials" },
-                    quantity = new { text = "Количество", type = "number" },
-                    date = new { text = "Дата", type = "date" },
+                    material_id = new { text = "РњР°С‚РµСЂРёР°Р»", type = "dictionary", controller = "Materials" },
+                    quantity = new { text = "РљРѕР»РёС‡РµСЃС‚РІРѕ", type = "number" },
+                    date = new { text = "Р”Р°С‚Р°", type = "date" },
                 },
-                title = "трату",
-                title_main = "Траты"
+                title = "С‚СЂР°С‚Сѓ",
+                title_main = "РўСЂР°С‚С‹"
             };
             return interfaceData;
         } 

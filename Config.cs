@@ -1,4 +1,4 @@
-using System.Text.Json;
+п»їusing System.Text.Json;
 
 namespace ServerApp
 {
@@ -25,20 +25,20 @@ namespace ServerApp
             return "server.conf";
         } 
 
-        // Метод для загрузки конфигурации из JSON-файла
+        // РњРµС‚РѕРґ РґР»СЏ Р·Р°РіСЂСѓР·РєРё РєРѕРЅС„РёРіСѓСЂР°С†РёРё РёР· JSON-С„Р°Р№Р»Р°
         public static Config LoadFromJson(string filePath)
         {
-            // Установка пути по умолчанию, если путь не передан
+            // РЈСЃС‚Р°РЅРѕРІРєР° РїСѓС‚Рё РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ, РµСЃР»Рё РїСѓС‚СЊ РЅРµ РїРµСЂРµРґР°РЅ
             if (string.IsNullOrEmpty(filePath))
             {
                 filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "server.conf");
-                Console.WriteLine($"Файл конфигурации не задан. Используется файл по умолчанию: {filePath}. Задать файл можно аргументом --conf=filePath.conf");
+                Console.WriteLine($"Р¤Р°Р№Р» РєРѕРЅС„РёРіСѓСЂР°С†РёРё РЅРµ Р·Р°РґР°РЅ. РСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ С„Р°Р№Р» РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ: {filePath}. Р—Р°РґР°С‚СЊ С„Р°Р№Р» РјРѕР¶РЅРѕ Р°СЂРіСѓРјРµРЅС‚РѕРј --conf=filePath.conf");
             }
 
-            // Если файл не существует, создаём его с значениями по умолчанию
+            // Р•СЃР»Рё С„Р°Р№Р» РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚, СЃРѕР·РґР°С‘Рј РµРіРѕ СЃ Р·РЅР°С‡РµРЅРёСЏРјРё РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
             if (!File.Exists(filePath))
             {
-                Console.WriteLine($"Файл конфигурации не найден. Создаётся новый файл по умолчанию: {filePath}");
+                Console.WriteLine($"Р¤Р°Р№Р» РєРѕРЅС„РёРіСѓСЂР°С†РёРё РЅРµ РЅР°Р№РґРµРЅ. РЎРѕР·РґР°С‘С‚СЃСЏ РЅРѕРІС‹Р№ С„Р°Р№Р» РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ: {filePath}");
                 var defaultConfig = new Config();
                 defaultConfig.SaveToJson(filePath);
                 return defaultConfig;
@@ -48,39 +48,39 @@ namespace ServerApp
             {
                 var options = new JsonSerializerOptions
                 {
-                    PropertyNameCaseInsensitive = true, // Игнорирование регистра
-                    ReadCommentHandling = JsonCommentHandling.Skip, // Пропуск комментариев
-                    AllowTrailingCommas = true // Поддержка завершающих запятых
+                    PropertyNameCaseInsensitive = true, // РРіРЅРѕСЂРёСЂРѕРІР°РЅРёРµ СЂРµРіРёСЃС‚СЂР°
+                    ReadCommentHandling = JsonCommentHandling.Skip, // РџСЂРѕРїСѓСЃРє РєРѕРјРјРµРЅС‚Р°СЂРёРµРІ
+                    AllowTrailingCommas = true // РџРѕРґРґРµСЂР¶РєР° Р·Р°РІРµСЂС€Р°СЋС‰РёС… Р·Р°РїСЏС‚С‹С…
                 };
 
-                // Десериализация с использованием значений по умолчанию
+                // Р”РµСЃРµСЂРёР°Р»РёР·Р°С†РёСЏ СЃ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµРј Р·РЅР°С‡РµРЅРёР№ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
                 var jsonConfig = JsonSerializer.Deserialize<Config>(File.ReadAllText(filePath), options);
                 return jsonConfig ?? new Config();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при чтении конфигурации: {ex.Message}. Используются параметры по умолчанию.");
+                Console.WriteLine($"РћС€РёР±РєР° РїСЂРё С‡С‚РµРЅРёРё РєРѕРЅС„РёРіСѓСЂР°С†РёРё: {ex.Message}. РСЃРїРѕР»СЊР·СѓСЋС‚СЃСЏ РїР°СЂР°РјРµС‚СЂС‹ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ.");
                 return new Config();
             }
         } 
 
-        // Метод для сохранения конфигурации в файл JSON
+        // РњРµС‚РѕРґ РґР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ РєРѕРЅС„РёРіСѓСЂР°С†РёРё РІ С„Р°Р№Р» JSON
         public void SaveToJson(string filePath)
         {
             try
             {
                 var options = new JsonSerializerOptions
                 {
-                    WriteIndented = true, // Красивое форматирование
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase // Используем camelCase
+                    WriteIndented = true, // РљСЂР°СЃРёРІРѕРµ С„РѕСЂРјР°С‚РёСЂРѕРІР°РЅРёРµ
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase // РСЃРїРѕР»СЊР·СѓРµРј camelCase
                 };
                 string json = JsonSerializer.Serialize(this, options);
                 File.WriteAllText(filePath, json);
-                Console.WriteLine($"Файл конфигурации создан: {filePath}");
+                Console.WriteLine($"Р¤Р°Р№Р» РєРѕРЅС„РёРіСѓСЂР°С†РёРё СЃРѕР·РґР°РЅ: {filePath}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при создании файла конфигурации: {ex.Message}");
+                Console.WriteLine($"РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё С„Р°Р№Р»Р° РєРѕРЅС„РёРіСѓСЂР°С†РёРё: {ex.Message}");
             }
         } 
     } 
