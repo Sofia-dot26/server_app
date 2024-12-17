@@ -1,4 +1,4 @@
-using Materials;
+п»їusing Materials;
 using Microsoft.AspNetCore.Http;
 using ServerApp;
 using Spend;
@@ -63,7 +63,7 @@ namespace Supply
                 supplier_id = Convert.ToInt32(row["supplier_id"]),
                 quantity = Convert.ToInt32(row["quantity"]),
                 date = Convert.ToDateTime(row["date"])
-            } : null; // Если запрос не вернул строк, возвращаем null
+            } : null; // Р•СЃР»Рё Р·Р°РїСЂРѕСЃ РЅРµ РІРµСЂРЅСѓР» СЃС‚СЂРѕРє, РІРѕР·РІСЂР°С‰Р°РµРј null
         } 
 
         public List<Supply> GetAllSupplies()
@@ -86,7 +86,7 @@ namespace Supply
             var supplies = new List<Supply>();
             foreach (var row in results)
             {
-                // Заполняем объект Supply, включая дополнительные поля
+                // Р—Р°РїРѕР»РЅСЏРµРј РѕР±СЉРµРєС‚ Supply, РІРєР»СЋС‡Р°СЏ РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РїРѕР»СЏ
                 supplies.Add(Supply.FromDictionary(row));
             }
 
@@ -110,7 +110,7 @@ namespace Supply
             return new
             {
                 success,
-                message = success ? "Поставка добавлена." : "Ошибка при добавлении поставки."
+                message = success ? "РџРѕСЃС‚Р°РІРєР° РґРѕР±Р°РІР»РµРЅР°." : "РћС€РёР±РєР° РїСЂРё РґРѕР±Р°РІР»РµРЅРёРё РїРѕСЃС‚Р°РІРєРё."
             };
         } 
 
@@ -120,7 +120,7 @@ namespace Supply
             return new
             {
                 success,
-                message = success ? "Поставка обновлена." : "Ошибка при обновлении поставки."
+                message = success ? "РџРѕСЃС‚Р°РІРєР° РѕР±РЅРѕРІР»РµРЅР°." : "РћС€РёР±РєР° РїСЂРё РѕР±РЅРѕРІР»РµРЅРёРё РїРѕСЃС‚Р°РІРєРё."
             };
         } 
 
@@ -130,7 +130,7 @@ namespace Supply
             return new
             {
                 success,
-                message = success ? "Поставка удалена." : "Ошибка при удалении поставки."
+                message = success ? "РџРѕСЃС‚Р°РІРєР° СѓРґР°Р»РµРЅР°." : "РћС€РёР±РєР° РїСЂРё СѓРґР°Р»РµРЅРёРё РїРѕСЃС‚Р°РІРєРё."
             };
         } 
 
@@ -156,20 +156,20 @@ namespace Supply
                     Material? material = material_id > 0 ? (new MaterialService()).GetMaterial(material_id) : null;
                     if (material == null)
                     {
-                        error += "Ошибка: материал не выбран. ";
+                        error += "РћС€РёР±РєР°: РјР°С‚РµСЂРёР°Р» РЅРµ РІС‹Р±СЂР°РЅ. ";
                     }
 
                     int supplier_id = ServerApp.ServerApp.getInt(context, "supplier_id") ?? 0;
                     Supplier? supplier = supplier_id > 0 ? (new SupplierService()).GetSupplier(supplier_id) : null;
                     if (supplier == null)
                     {
-                        error += "Ошибка: поставщик не выбран. ";
+                        error += "РћС€РёР±РєР°: РїРѕСЃС‚Р°РІС‰РёРє РЅРµ РІС‹Р±СЂР°РЅ. ";
                     }
 
                     int quantity = ServerApp.ServerApp.getInt(context, "quantity") ?? 0;
                     if (quantity <= 0)
                     {
-                        error += "Ошибка: количество должно быть больше нуля.";
+                        error += "РћС€РёР±РєР°: РєРѕР»РёС‡РµСЃС‚РІРѕ РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ Р±РѕР»СЊС€Рµ РЅСѓР»СЏ.";
                     }
 
                     var date = ServerApp.ServerApp.getDateTime(context, "date") ?? DateTime.Now;
@@ -184,27 +184,27 @@ namespace Supply
                     int id = ServerApp.ServerApp.getInt(context, "id") ?? 0;
                     if (id <= 0)
                     {
-                        error += "Ошибка: поставка не выбрана";
+                        error += "РћС€РёР±РєР°: РїРѕСЃС‚Р°РІРєР° РЅРµ РІС‹Р±СЂР°РЅР°";
                     }
 
                     material_id = int.Parse(context.Request.Query["material_id"]);
                     material = material_id > 0 ? (new MaterialService()).GetMaterial(material_id) : null;
                     if (material == null)
                     {
-                        error += "Ошибка: материал не выбран. ";
+                        error += "РћС€РёР±РєР°: РјР°С‚РµСЂРёР°Р» РЅРµ РІС‹Р±СЂР°РЅ. ";
                     }                    
 
                     supplier_id = ServerApp.ServerApp.getInt(context, "supplier_id") ?? 0;
                     supplier = supplier_id > 0 ? (new SupplierService()).GetSupplier(supplier_id) : null;
                     if (supplier == null)
                     {
-                        error += "Ошибка: поставщик не выбран. ";
+                        error += "РћС€РёР±РєР°: РїРѕСЃС‚Р°РІС‰РёРє РЅРµ РІС‹Р±СЂР°РЅ. ";
                     }
 
                     quantity = ServerApp.ServerApp.getInt(context, "quantity") ?? 0;
                     if (quantity <= 0)
                     {
-                        error += "Ошибка: количество должно быть больше нуля.";
+                        error += "РћС€РёР±РєР°: РєРѕР»РёС‡РµСЃС‚РІРѕ РґРѕР»Р¶РЅРѕ Р±С‹С‚СЊ Р±РѕР»СЊС€Рµ РЅСѓР»СЏ.";
                     }
 
                     date = ServerApp.ServerApp.getDateTime(context, "date") ?? DateTime.Now;
@@ -223,7 +223,7 @@ namespace Supply
                 case "get":
                     id = ServerApp.ServerApp.getInt(context, "id") ?? 0;
                     result = this.GetSupply(id);
-                    if (result == null) result = new { message = "Поставка не найдена" };
+                    if (result == null) result = new { message = "РџРѕСЃС‚Р°РІРєР° РЅРµ РЅР°Р№РґРµРЅР°" };
                     break;
 
                 case "list":
@@ -232,7 +232,7 @@ namespace Supply
 
                 default:
                     context.Response.StatusCode = 404;
-                    result = new { message = "Метод не найден." };
+                    result = new { message = "РњРµС‚РѕРґ РЅРµ РЅР°Р№РґРµРЅ." };
                     break;
             }
             return result;
@@ -243,26 +243,26 @@ namespace Supply
 
             interfaceData.Supplies = new
             {
-                description = "Представление для управления поставками",
+                description = "РџСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ РґР»СЏ СѓРїСЂР°РІР»РµРЅРёСЏ РїРѕСЃС‚Р°РІРєР°РјРё",
                 controller = "supplies",
                 header = new
                 {
                     id = "ID",
-                    date_human = "Дата",
-                    supplier_name = "Поставщик",
-                    material_name = "Материал",
-                    quantity = "Количество",
-                    unit = "Единица"
+                    date_human = "Р”Р°С‚Р°",
+                    supplier_name = "РџРѕСЃС‚Р°РІС‰РёРє",
+                    material_name = "РњР°С‚РµСЂРёР°Р»",
+                    quantity = "РљРѕР»РёС‡РµСЃС‚РІРѕ",
+                    unit = "Р•РґРёРЅРёС†Р°"
                 },
                 add = new
                 {
-                    supplier_id = new { text = "Поставщик", type = "dictionary", controller = "Suppliers" },
-                    material_id = new { text = "Материал", type = "dictionary", controller = "Materials" },
-                    quantity = new { text = "Количество", type = "number" },
-                    date = new { text = "Дата", type = "date", default_value = DateTime.Today.ToString("dd.MM.yyyy") },
+                    supplier_id = new { text = "РџРѕСЃС‚Р°РІС‰РёРє", type = "dictionary", controller = "Suppliers" },
+                    material_id = new { text = "РњР°С‚РµСЂРёР°Р»", type = "dictionary", controller = "Materials" },
+                    quantity = new { text = "РљРѕР»РёС‡РµСЃС‚РІРѕ", type = "number" },
+                    date = new { text = "Р”Р°С‚Р°", type = "date", default_value = DateTime.Today.ToString("dd.MM.yyyy") },
                 },
-                title = "поставку",
-                title_main = "Поставки"
+                title = "РїРѕСЃС‚Р°РІРєСѓ",
+                title_main = "РџРѕСЃС‚Р°РІРєРё"
             };
             return interfaceData;
         }
