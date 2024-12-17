@@ -1,0 +1,193 @@
+body {
+    background-color: #87c2de;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+label {
+    display: block;
+    margin: 10px 0 5px;
+}
+
+.view {
+    display: none;
+    text-align: center;
+    vertical-align: middle;
+    max-width: 90%;
+    padding: 30px;
+    border: 1px solid gray;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.view.active {
+    display: block;
+}
+
+input[type="text"], input[type="password"], input[type="button"] {
+    display: block;
+    width: calc(100% - 20px);
+    margin: 10px auto;
+    padding: 10px;
+    font-size: 1em;
+    border: 1px solid gray;
+    border-radius: 5px;
+    text-align: center;
+}
+
+input[type="button"] {
+    background-color: #87c2de;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+input[type="button"]:hover {
+    background-color: #5a9abc;
+}
+
+.notification {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: calc(50% - 200px);
+    max-width: 400px;
+    height: auto;
+    padding: 15px 20px;
+    background-color: rgba(50, 50, 50, 0.9);
+    color: white;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    animation: fadeOut 5s forwards;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(20px); }
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.data-table th, .data-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.data-table tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+.data-table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+.breadcrumb {
+    cursor: pointer;
+    color: blue;
+    text-decoration: underline;
+}
+
+.breadcrumb:hover {
+    color: darkblue;
+    text-decoration: none;
+}
+
+.dashboard-button {
+    width: 250px;
+    height: 30px;
+    font-weight: bold;
+    margin: 10px;
+    border-radius: 10px;
+}
+
+.table-button {
+    width: 30px;
+    height: 20px;
+    text-align: center;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.table-button-wide {
+    width: 100px;
+    height: 20px;
+    text-align: center;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.icon-radio {
+    width: 150px;
+}
+
+.label-radio {
+    font-weight: bold;
+}
+
+label.label-radio {
+    display: inline-block;
+}
+
+#logout-button {
+    margin: 20px;
+}
+
+#LoadingView
+{
+    background-size: 100%;
+    background: #000000 url("img/loading.gif") no-repeat center;
+    width: 400px;
+    height: 400px;
+}
+
+.button-add {
+    margin: 30px;
+    width: 200px;
+    height: 50px;
+    background: #a0ffa0;
+    font-weight: bold;
+    border-radius: 10px;
+}
+
+.highlight {
+    background: #ffff0080;
+    border-radius: 10px;
+}
+
+.back-button {
+    margin: 30px;
+    width: 150px;
+    height: 30px;
+    background: darkolivegreen;
+    font-weight: bold;
+}
+
+.button-chose-dict {
+    width: 200px;
+    height: 30px;
+    margin: 20px;
+    background-color: gray;
+    font-weight: bold;
+    border-radius: 10px;
+}
+
+.button-chose-dict.selected {
+    background-color: #a0ffa0;
+}
+
+.green {
+    color: darkolivegreen;
+    font-weight: bold;
+}
