@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using ServerApp;
+using System.Dynamic;
 using System.Text.Json;
 using System.Xml.Linq;
 
@@ -72,20 +73,16 @@ namespace Suppliers
             var suppliers = new List<Supplier>();
             foreach (var row in results)
             {
-                suppliers.Add(new Supplier
-                {
-                    id = Convert.ToInt32(row["id"]),
-                    name = Convert.ToString(row["name"]),
-                    contactInfo = Convert.ToString(row["contact_info"])
-                });
+                suppliers.Add(Supplier.FromDictionary(row));
             }
 
             return suppliers;
         }
-    } // Конец класса SupplierService
+    }
 
-    public class SupplierController: IController
+    public class SupplierController : IController
     {
+        public const string Controller = "suppliers";
         private readonly ISupplierService _supplierService;
 
         public SupplierController(ISupplierService supplierService)
@@ -95,30 +92,39 @@ namespace Suppliers
 
         public object AddSupplier(string name, string contactInfo)
         {
-            return new {
-                message = _supplierService.AddSupplier(name, contactInfo) ? "Поставщик добавлен" : "Ошибка добавления поставщика"
+            bool success = _supplierService.AddSupplier(name, contactInfo);
+            return new
+            {
+                success,
+                message = success ? "Поставщик добавлен" : "Ошибка добавления поставщика"
             };
         }
 
         public object UpdateSupplier(int id, string name, string contactInfo)
         {
-            return new {
-                message = _supplierService.UpdateSupplier(id, name, contactInfo) ? "Поставщик обновлён" : "Ошибка обновления поставщика"
+            bool success = _supplierService.UpdateSupplier(id, name, contactInfo);
+            return new
+            {
+                success,
+                message = success ? "Поставщик обновлён" : "Ошибка обновления поставщика"
             };
         }
 
         public object DeleteSupplier(int id)
         {
+            bool success = _supplierService.DeleteSupplier(id);
             return new
             {
-                message = _supplierService.DeleteSupplier(id) ? "Поставщик удалён" : "Ошибка удаления поставщика"
+                success,
+                message = success ? "Поставщик удалён" : "Ошибка удаления поставщика"
             };
         }
 
         public object GetSupplier(int id)
         {
             var supplier = _supplierService.GetSupplier(id);
-            return new {
+            return new
+            {
                 message = supplier == null ? "Поставщик не найден" : "Поставщик получен",
                 data = supplier
             };
@@ -126,10 +132,7 @@ namespace Suppliers
 
         public object GetAllSuppliers()
         {
-            return new { 
-                message = "Поставщики получены",
-                data = _supplierService.GetAllSuppliers()
-            };
+            return _supplierService.GetAllSuppliers();
         }
 
         public object Handle(HttpContext context, string? method)
@@ -161,13 +164,48 @@ namespace Suppliers
                     break;
             }
             return result;
-        } // Конец метода HandleSupplierRequest
-    } // Конец класса SupplierController
+        }
+        public static dynamic GetInterface()
+        {
+            dynamic interfaceData = new ExpandoObject();
+
+            interfaceData.Suppliers = new
+            {
+                description = "Представление для управления поставщиками",
+                controller = "suppliers",
+                header = new
+                {
+                    id = "ID",
+                    name = "Название",
+                    contactInfo = "Контактная информация"
+                },
+                add = new
+                {
+                    name = new { text = "Название", type = "text" },
+                    contact_info = new { text = "Контактная информация", type = "text" }
+                },
+                title = "поставщика",
+                title_main = "Поставщики"
+            };
+            return interfaceData;
+        }
+
+    }
 
     public class Supplier
     {
-        public int id;
-        public string? name;
-        public string? contactInfo;
+        public int id { get; set; }
+        public string? name { get; set; }
+        public string? contactInfo { get; set; }
+
+        public static Supplier FromDictionary(Dictionary<string, object?> row)
+        {
+            return new Supplier
+            {
+                id = Convert.ToInt32(row["id"]),
+                name = Convert.ToString(row["name"]),
+                contactInfo = Convert.ToString(row["contact_info"])
+            };
+        }
     }
 }
