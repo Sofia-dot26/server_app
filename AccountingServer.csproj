@@ -8,6 +8,21 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Content Include="AccountingClient\.idea\codeception.xml" />
+	  <Content Include="AccountingClient\.idea\deployment.xml" />
+	  <Content Include="AccountingClient\.idea\modules.xml" />
+	  <Content Include="AccountingClient\.idea\php.xml" />
+	  <Content Include="AccountingClient\.idea\phpspec.xml" />
+	  <Content Include="AccountingClient\.idea\phpunit.xml" />
+	  <Content Include="AccountingClient\.idea\workspace.xml" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="AccountingClient\.idea\.gitignore" />
+	  <None Include="AccountingClient\.idea\AccountingClient.iml" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.App" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.0" />
