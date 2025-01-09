@@ -4,18 +4,13 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Http;
-using Users;
-using Materials;
-using Suppliers;
-using Supply;
-using Spend;
-using Equipment;
-using Reports;
-using Auth;
 using System.Dynamic;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Diagnostics;
+using AccountingServer.Models;
+using AccountingServer.Controllers;
+using AccountingServer.Services;
 
 namespace ServerApp
 {
@@ -78,7 +73,7 @@ namespace ServerApp
                                 UserController userController = new(new UserService());
 
                                 int? session_id = AuthController.GetSessionId(context);
-                                
+
                                 if (session_id != null)
                                 {
                                     session = authController.GetSession(session_id ?? 0);
@@ -94,16 +89,16 @@ namespace ServerApp
                                     AuthController.Controller or "system" => true,
 
                                     UserController.Controller => user?.isAdmin() ?? false,
-                                    MaterialController.Controller 
-                                    or SpendController.Controller 
+                                    MaterialController.Controller
+                                    or SpendController.Controller
                                     or SupplyController.Controller
                                     or SupplierController.Controller
-                                    or EquipmentController.Controller => 
+                                    or EquipmentController.Controller =>
                                       (user?.isDirector() ?? false) || (user?.isAccounter() ?? false),
                                     ReportController.Controller => user?.id != null,
                                     _ => false
                                 };
-                                
+
 
                                 switch (version)
                                 {
@@ -171,15 +166,17 @@ namespace ServerApp
                                     if (accessAllowed)
                                     {
                                         result = controllerObject.Handle(context, method);
-                                    } else
+                                    }
+                                    else
                                     {
                                         context.Response.StatusCode = 401;
-                                        result = new {
+                                        result = new
+                                        {
                                             success = false,
                                             message = $"Ваша роль \"{user?.role ?? "Не авторизован"}\" не позволяет использовать контроллер \"{controller}\"."
                                         };
                                     }
-                                    
+
                                 }
 
                                 var options = new JsonSerializerOptions
@@ -212,7 +209,7 @@ namespace ServerApp
                                     ".html" or ".htm" => "text/html",
                                     ".js" => "application/javascript",
                                     ".css" => "text/css",
-                                    ".jpg" or ".jpeg"  => "image/jpeg",
+                                    ".jpg" or ".jpeg" => "image/jpeg",
                                     ".png" => "image/png",
                                     ".gif" => "image/gif",
                                     _ => "application/octet-stream"
@@ -237,16 +234,16 @@ namespace ServerApp
 
             Console.WriteLine($"Сервер запущен на порту {config.ApiPort}. Нажмите Ctrl+C для завершения.");
             host.RunAsync();
-
             if (DatabaseHelper.RunMigration()) // Проверяем существование базы
             {
                 ServerStatus.Status = 1; // Всё в порядке, работаем дальше
-            } else
+            }
+            else
             {
                 Console.WriteLine("Завершение работы сервера...");
                 return;
             }
-            
+
 
             Console.WriteLine("Введите 'exit' или 'q', чтобы завершить сервер, app для запуска браузера с клиентом.");
             bool run = true;
@@ -305,7 +302,7 @@ namespace ServerApp
             return isNull ? null : result;
         }
 
-        
+
 
         static void OpenBrowser(string url)
         {

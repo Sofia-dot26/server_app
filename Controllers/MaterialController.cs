@@ -1,82 +1,16 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AccountingServer.Services;
+using Microsoft.AspNetCore.Http;
 using ServerApp;
+using System;
+using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Materials
+namespace AccountingServer.Controllers
 {
-    // Управление материалами
-    public interface IMaterialService
-    {
-        bool AddMaterial(string name, string unit); 
-        bool UpdateMaterial(int id, string name, string unit);
-        bool DeleteMaterial(int id);
-        Material? GetMaterial(int id);
-        List<Material> GetAllMaterials();
-    } 
-
-    // Сервис для материалов
-    public class MaterialService : IMaterialService
-    {
-        public bool AddMaterial(string name, string unit)
-        {
-            string sql = "INSERT INTO Materials (name, unit) VALUES (@name, @unit) RETURNING id";
-            var parameters = new Dictionary<string, object> {
-                { "@name", name },
-                { "@unit", unit }
-            };
-            var result = DatabaseHelper.ExecuteQuery(sql, parameters);
-            return result.Count > 0;
-        }
-
-        public bool UpdateMaterial(int id, string name, string unit)
-        {
-            string sql = "UPDATE Materials SET name = @name, unit = @unit WHERE id = @id";
-            var parameters = new Dictionary<string, object> {
-                { "@id", id },
-                { "@name", name },
-                { "@unit", unit }
-            };
-            return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        }
-
-        public bool DeleteMaterial(int id)
-        {
-            string sql = "DELETE FROM Materials WHERE id = @id";
-            var parameters = new Dictionary<string, object> { { "@id", id } };
-            return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        }
-
-        public Material? GetMaterial(int id)
-        {
-            string sql = "SELECT * FROM Materials WHERE id = @id";
-            var parameters = new Dictionary<string, object> { { "@id", id } };
-            var results = DatabaseHelper.ExecuteQuery(sql, parameters);
-            var row = (results.Count == 0) ? null : results[0];
-
-            return row != null ? Material.FromDictionary(results[0]): null;
-        }
-
-        public List<Material> GetAllMaterials()
-        {
-            string sql = "SELECT * FROM Materials";
-            var results = DatabaseHelper.ExecuteQuery(sql);
-            var materials = new List<Material>();
-            foreach (var row in results)
-            {
-                materials.Add(new Material
-                {
-                    id = Convert.ToInt32(row["id"]),
-                    name = Convert.ToString(row["name"]),
-                    unit = Convert.ToString(row["unit"]),
-                });
-            }
-
-            return materials;
-        }
-    } 
-
-
-    public class MaterialController: IController
+    public class MaterialController : IController
     {
         public const string Controller = "materials";
         private readonly IMaterialService _materialService;
@@ -86,7 +20,7 @@ namespace Materials
             _materialService = materialService;
         }
 
-        public object AddMaterial(string name, string unit) 
+        public object AddMaterial(string name,  string unit) 
         {
             bool success = _materialService.AddMaterial(name, unit);
             return new
@@ -96,9 +30,9 @@ namespace Materials
             };
         }
 
-        public object UpdateMaterial(int id, string name, string unit) 
+        public object UpdateMaterial(int id, string name,  string unit) 
         {
-            bool success = _materialService.UpdateMaterial(id, name, unit);
+            bool success = _materialService.UpdateMaterial(id, name,  unit);
             return new
             {
                 success,
@@ -142,14 +76,14 @@ namespace Materials
                 case "add":
                     var name = context.Request.Query["name"];
                     var unit = context.Request.Query["unit"];
-                    result = this.AddMaterial(name, unit);
+                    result = this.AddMaterial(name,  unit);
                     break;
 
                 case "update":
                     var id = int.Parse(context.Request.Query["id"]);
                     name = context.Request.Query["name"];
                     unit = context.Request.Query["unit"];
-                    result = this.UpdateMaterial(id, name, unit);
+                    result = this.UpdateMaterial(id, name,  unit);
                     break;
 
                 case "delete":
@@ -173,9 +107,11 @@ namespace Materials
             }
             return result;
         } 
+
         public static dynamic GetInterface()
         {
             dynamic interfaceData = new ExpandoObject();
+
             interfaceData.Materials = new
             {
                 description = "Представление для управления материалами",
@@ -197,20 +133,4 @@ namespace Materials
             return interfaceData;
         } 
     } 
-      
-    public class Material
-    {
-        public int id { get; set; }
-        public string? name { get; set; }
-        public string? unit { get; set; }
-
-        public static Material FromDictionary(Dictionary<string, object?> row) {
-            return new Material
-            {
-                id = Convert.ToInt32(row["id"]),
-                name = Convert.ToString(row["name"]),
-                unit = Convert.ToString(row["unit"]),
-            };
-        }
-    }
 }

@@ -1,86 +1,16 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AccountingServer.Services;
+using Microsoft.AspNetCore.Http;
 using ServerApp;
+using System;
+using System.Collections.Generic;
 using System.Dynamic;
-using System.Text.Json;
-using System.Xml.Linq;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Suppliers
+namespace AccountingServer.Controllers
 {
-    // Управление поставщиками
-    public interface ISupplierService
-    {
-        bool AddSupplier(string name, string contactInfo);
-        bool UpdateSupplier(int id, string name, string contactInfo);
-        bool DeleteSupplier(int id);
-
-        Supplier? GetSupplier(int id);
-        List<Supplier> GetAllSuppliers();
-    }
-
-    public class SupplierService : ISupplierService
-    {
-        public bool AddSupplier(string name, string contactInfo)
-        {
-            string sql = "INSERT INTO Suppliers (name, contact_info) VALUES (@name, @contact_info)";
-            var parameters = new Dictionary<string, object> {
-                { "@name", name },
-                { "@contact_info", contactInfo }
-            };
-            return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        }
-
-        public bool UpdateSupplier(int id, string name, string contactInfo)
-        {
-            string sql = "UPDATE Suppliers SET name = @name, contact_info = @contact_info WHERE id = @id";
-            var parameters = new Dictionary<string, object> {
-                { "@id", id },
-                { "@name", name },
-                { "@contact_info", contactInfo }
-            };
-            return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        }
-
-        public bool DeleteSupplier(int id)
-        {
-            string sql = "DELETE FROM Suppliers WHERE id = @id";
-            var parameters = new Dictionary<string, object> {
-                { "@id", id }
-            };
-            return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        }
-
-        public Supplier? GetSupplier(int id)
-        {
-            string sql = "SELECT * FROM Suppliers WHERE id = @id";
-            var parameters = new Dictionary<string, object> {
-                { "@id", id }
-            };
-            var results = DatabaseHelper.ExecuteQuery(sql, parameters);
-            var row = (results.Count == 0) ? null : results[0];
-            return row != null ? new Supplier
-            {
-                id = Convert.ToInt32(row["id"]),
-                name = Convert.ToString(row["name"]),
-                contactInfo = Convert.ToString(row["contact_info"])
-            } : null; // Если запрос не вернул строк, возвращаем null
-        }
-
-        public List<Supplier> GetAllSuppliers()
-        {
-            string sql = "SELECT * FROM Suppliers";
-            var results = DatabaseHelper.ExecuteQuery(sql);
-
-            var suppliers = new List<Supplier>();
-            foreach (var row in results)
-            {
-                suppliers.Add(Supplier.FromDictionary(row));
-            }
-
-            return suppliers;
-        }
-    } 
-
-    public class SupplierController: IController
+    public class SupplierController : IController
     {
         public const string Controller = "suppliers";
         private readonly ISupplierService _supplierService;
@@ -93,7 +23,8 @@ namespace Suppliers
         public object AddSupplier(string name, string contactInfo)
         {
             bool success = _supplierService.AddSupplier(name, contactInfo);
-            return new {
+            return new
+            {
                 success,
                 message = success ? "Поставщик добавлен" : "Ошибка добавления поставщика"
             };
@@ -102,7 +33,8 @@ namespace Suppliers
         public object UpdateSupplier(int id, string name, string contactInfo)
         {
             bool success = _supplierService.UpdateSupplier(id, name, contactInfo);
-            return new {
+            return new
+            {
                 success,
                 message = success ? "Поставщик обновлён" : "Ошибка обновления поставщика"
             };
@@ -121,7 +53,8 @@ namespace Suppliers
         public object GetSupplier(int id)
         {
             var supplier = _supplierService.GetSupplier(id);
-            return new {
+            return new
+            {
                 message = supplier == null ? "Поставщик не найден" : "Поставщик получен",
                 data = supplier
             };
@@ -161,7 +94,7 @@ namespace Suppliers
                     break;
             }
             return result;
-        } 
+        }
         public static dynamic GetInterface()
         {
             dynamic interfaceData = new ExpandoObject();
@@ -185,23 +118,7 @@ namespace Suppliers
                 title_main = "Поставщики"
             };
             return interfaceData;
-        } 
-
-    } 
-
-    public class Supplier
-    {
-        public int id { get; set; }
-        public string? name { get; set; }
-        public string? contactInfo { get; set; }
-
-        public static Supplier FromDictionary(Dictionary<string, object?> row) {
-            return new Supplier
-            {
-                id = Convert.ToInt32(row["id"]),
-                name = Convert.ToString(row["name"]),
-                contactInfo = Convert.ToString(row["contact_info"])
-            };
         }
+
     }
 }

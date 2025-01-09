@@ -1,99 +1,16 @@
-﻿using Materials;
+﻿using AccountingServer.Models;
+using AccountingServer.Services;
 using Microsoft.AspNetCore.Http;
 using ServerApp;
-using Spend;
-using Suppliers;
+using System;
+using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Supply
+namespace AccountingServer.Controllers
 {
-    public interface ISupplyService
-    {
-        bool AddSupply(int material_id, int supplier_id, int quantity, DateTime date);
-        bool UpdateSupply(int id, int material_id, int supplier_id, int quantity, DateTime date);
-        bool DeleteSupply(int id);
-        Supply? GetSupply(int id);
-        List<Supply> GetAllSupplies();
-    } 
-
-    public class SupplyService : ISupplyService
-    {
-        public bool AddSupply(int material_id, int supplier_id, int quantity, DateTime date)
-        {
-            string sql = "INSERT INTO Supplies (material_id, supplier_id, quantity, date) VALUES (@material_id, @supplier_id, @quantity, @date)";
-            var parameters = new Dictionary<string, object> {
-                { "@material_id", material_id },
-                { "@supplier_id", supplier_id },
-                { "@quantity", quantity },
-                { "@date", date }
-            };
-            return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        } 
-
-        public bool UpdateSupply(int id, int material_id, int supplier_id, int quantity, DateTime date)
-        {
-            string sql = "UPDATE Supplies SET material_id = @material_id, supplier_id = @supplier_id, quantity = @quantity, date = @date WHERE id = @id";
-            var parameters = new Dictionary<string, object>{
-                { "@id", id },
-                { "@material_id", material_id },
-                { "@supplier_id", supplier_id },
-                { "@quantity", quantity },
-                { "@date", date }
-            };
-            return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        } 
-
-        public bool DeleteSupply(int id)
-        {
-            string sql = "DELETE FROM Supplies WHERE id = @id";
-            var parameters = new Dictionary<string, object> { { "@id", id } };
-            return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        } 
-
-        public Supply? GetSupply(int id)
-        {
-            string sql = "SELECT * FROM Supplies WHERE id = @id";
-            var parameters = new Dictionary<string, object> { { "@id", id } };
-            var results = DatabaseHelper.ExecuteQuery(sql, parameters);
-            var row = (results.Count == 0) ? null : results[0];
-            return row != null ? new Supply
-            {
-                id = Convert.ToInt32(row["id"]),
-                material_id = Convert.ToInt32(row["material_id"]),
-                supplier_id = Convert.ToInt32(row["supplier_id"]),
-                quantity = Convert.ToInt32(row["quantity"]),
-                date = Convert.ToDateTime(row["date"])
-            } : null; // Если запрос не вернул строк, возвращаем null
-        } 
-
-        public List<Supply> GetAllSupplies()
-        {
-            string sql = @"
-        SELECT 
-            s.*,
-            m.name AS material_name,
-            m.unit AS unit,
-            sp.name AS supplier_name
-        FROM 
-            Supplies s
-        LEFT JOIN 
-            Materials m ON s.material_id = m.id
-        LEFT JOIN 
-            Suppliers sp ON s.supplier_id = sp.id";
-
-            var results = DatabaseHelper.ExecuteQuery(sql);
-
-            var supplies = new List<Supply>();
-            foreach (var row in results)
-            {
-                // Заполняем объект Supply, включая дополнительные поля
-                supplies.Add(Supply.FromDictionary(row));
-            }
-
-            return supplies;
-        } 
-    } 
-
     public class SupplyController : IController
     {
         public const string Controller = "supplies";
@@ -112,7 +29,7 @@ namespace Supply
                 success,
                 message = success ? "Поставка добавлена." : "Ошибка при добавлении поставки."
             };
-        } 
+        }
 
         public object UpdateSupply(int id, int material_id, int supplier_id, int quantity, DateTime date)
         {
@@ -122,7 +39,7 @@ namespace Supply
                 success,
                 message = success ? "Поставка обновлена." : "Ошибка при обновлении поставки."
             };
-        } 
+        }
 
         public object DeleteSupply(int id)
         {
@@ -132,7 +49,7 @@ namespace Supply
                 success,
                 message = success ? "Поставка удалена." : "Ошибка при удалении поставки."
             };
-        } 
+        }
 
 
         public Supply? GetSupply(int id)
@@ -149,6 +66,7 @@ namespace Supply
         {
             dynamic? result;
             string error = "";
+
             switch (method?.ToLower())
             {
                 case "add":
@@ -192,7 +110,7 @@ namespace Supply
                     if (material == null)
                     {
                         error += "Ошибка: материал не выбран. ";
-                    }                    
+                    }
 
                     supplier_id = ServerApp.ServerApp.getInt(context, "supplier_id") ?? 0;
                     supplier = supplier_id > 0 ? (new SupplierService()).GetSupplier(supplier_id) : null;
@@ -236,7 +154,7 @@ namespace Supply
                     break;
             }
             return result;
-        } 
+        }
         public static dynamic GetInterface()
         {
             dynamic interfaceData = new ExpandoObject();
@@ -265,33 +183,6 @@ namespace Supply
                 title_main = "Поставки"
             };
             return interfaceData;
-        }
-    } 
-
-    public class Supply
-    {
-        public int id { get; set; }
-        public int material_id { get; set; }
-        public int supplier_id { get; set; }
-        public int quantity { get; set; }
-        public string? material_name { get; set; }
-        public string? supplier_name { get; set; }
-        public DateTime date { get; set; }
-        public string date_human { get => this.date.ToString("dd.MM.yyyy"); }
-        public string? unit { get; set; }
-        public static Supply FromDictionary(Dictionary<string, object> row)
-        {
-            return new Supply
-            {
-                id = Convert.ToInt32(row["id"]),
-                material_id= Convert.ToInt32(row["material_id"]),
-                supplier_id = Convert.ToInt32(row["supplier_id"]),
-                quantity = Convert.ToInt32(row["quantity"]),
-                date = Convert.ToDateTime(row["date"]),
-                material_name = row.ContainsKey("material_name") ? row["material_name"].ToString() : "",
-                supplier_name = row.ContainsKey("supplier_name") ? row["supplier_name"].ToString() : "",
-                unit = Convert.ToString(row["unit"])
-            };
         }
     }
 }

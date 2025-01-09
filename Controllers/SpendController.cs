@@ -1,98 +1,22 @@
-﻿using Materials;
+﻿using AccountingServer.Models;
+using AccountingServer.Services;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using ServerApp;
-using Suppliers;
+using System;
+using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Spend
+namespace AccountingServer.Controllers
 {
-    public interface ISpentMaterialService
-    {
-        bool AddSpend(int material_id, int quantity, DateTime date);
-        bool UpdateSpend(int id, int material_id, int quantity, DateTime date);
-        bool DeleteSpend(int id);
-        Spend? GetSpend(int id);
-        List<Spend> GetAllSpentMaterials();
-    } 
-
-    public class SpendService : ISpentMaterialService
-    {
-        public bool AddSpend(int material_id, int quantity, DateTime date)
-        {
-            string sql = "INSERT INTO SpentMaterials (material_id, quantity, date) VALUES (@material_id, @quantity, @date)";
-            var parameters = new Dictionary<string, object> {
-                { "@material_id", material_id },
-                { "@quantity", quantity },
-                { "@date", date }
-            };
-            return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        } 
-
-        public bool UpdateSpend(int id, int material_id, int quantity, DateTime date)
-        {
-            string sql = "UPDATE SpentMaterials SET material_id = @material_id, quantity = @quantity, date = @date WHERE id = @id";
-            var parameters = new Dictionary<string, object>{
-                { "@id", id },
-                { "@material_id", material_id },
-                { "@quantity", quantity },
-                { "@date", date }
-            };
-            return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        } 
-
-        public bool DeleteSpend(int id)
-        {
-            string sql = "DELETE FROM SpentMaterials WHERE id = @id";
-            var parameters = new Dictionary<string, object> { { "@id", id } };
-            return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        } 
-
-        public Spend? GetSpend(int id)
-        {
-            string sql = "SELECT * FROM SpentMaterials WHERE id = @id";
-            var parameters = new Dictionary<string, object> { { "@id", id } };
-            var results = DatabaseHelper.ExecuteQuery(sql, parameters);
-            var row = (results.Count == 0) ? null : results[0];
-            return row != null ? new Spend
-            {
-                id = Convert.ToInt32(row["id"]),
-                material_id = Convert.ToInt32(row["material_id"]),
-                quantity = Convert.ToInt32(row["quantity"]),
-                date = Convert.ToDateTime(row["date"])
-            } : null; // Если запрос не вернул строк, возвращаем null
-        } 
-
-        public List<Spend> GetAllSpentMaterials() 
-        {
-            string sql = @"
-        SELECT 
-            s.*,
-            m.name AS material_name,
-            m.unit AS unit
-        FROM 
-            SpentMaterials s
-        LEFT JOIN 
-            Materials m ON s.material_id = m.id";
-            var results = DatabaseHelper.ExecuteQuery(sql);
-
-            var SpentMaterials = new List<Spend>();
-            foreach (var row in results)
-            {
-                SpentMaterials.Add(Spend.FromDictionary(row));
-            }
-
-            return SpentMaterials;
-        } 
-
-    } 
-
     public class SpendController : IController
     {
         public const string Controller = "spend";
-        private readonly ISpentMaterialService _SpendService;
+        private readonly ISpendMaterialService _SpendService;
 
-        public SpendController(ISpentMaterialService SpendService)
+        public SpendController(ISpendMaterialService SpendService)
         {
             _SpendService = SpendService;
         }
@@ -105,7 +29,7 @@ namespace Spend
                 success,
                 message = success ? "Трата материалов добавлена." : "Ошибка при добавлении траты материалов."
             };
-        } 
+        }
 
         public object UpdateSpend(int id, int material_id, int quantity, DateTime date)
         {
@@ -115,7 +39,7 @@ namespace Spend
                 success,
                 message = success ? "Трата обновлена." : "Ошибка при обновлении траты."
             };
-        } 
+        }
 
         public object DeleteSpend(int id)
         {
@@ -125,13 +49,14 @@ namespace Spend
                 success,
                 message = success ? "Трата удалена." : "Ошибка при удалении траты."
             };
-        } 
+        }
 
 
         public object GetSpend(int id)
         {
             var Spend = _SpendService.GetSpend(id);
-            return new {
+            return new
+            {
                 message = Spend == null ? "Трата не найдена" : "Трата получена",
                 data = Spend
             };
@@ -217,7 +142,7 @@ namespace Spend
                     break;
             }
             return result;
-        } 
+        }
         public static dynamic GetInterface()
         {
             dynamic interfaceData = new ExpandoObject();
@@ -244,32 +169,7 @@ namespace Spend
                 title_main = "Траты"
             };
             return interfaceData;
-        } 
-
-    } 
-
-
-    public class Spend
-    {
-        public int id { get; set; }
-        public int material_id { get; set; }
-        public int quantity { get; set; }
-        public DateTime date { get; set; }
-        public string date_human { get => this.date.ToString("dd.MM.yyyy"); }
-
-        public string? material_name { get; set; }       
-        public string? unit { get; set; }
-        public static Spend FromDictionary(Dictionary<string, object> row)
-        {
-            return new Spend
-            {
-                id = Convert.ToInt32(row["id"]),
-                material_id = Convert.ToInt32(row["material_id"]),
-                quantity = Convert.ToInt32(row["quantity"]),
-                date = Convert.ToDateTime(row["date"]),
-                material_name = row.ContainsKey("material_name") ? row["material_name"].ToString() : "",
-                unit = Convert.ToString(row["unit"])
-            };
         }
+
     }
 }

@@ -1,112 +1,16 @@
-﻿using Equipment;
-using Materials;
+﻿using AccountingServer.Models;
+using AccountingServer.Services;
 using Microsoft.AspNetCore.Http;
-using Reports;
 using ServerApp;
-using Spend;
-using Suppliers;
-using Supply;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Text.Json;
-using Users;
+using System.Threading.Tasks;
 
-namespace Auth
+namespace AccountingServer.Controllers
 {
-    public interface IAuthService
-    {
-        Session? Login(string username, string password, out User? user, out int? error, string ip = "127.0.0.1");
-        bool Logout(int sessionId);
-        Session? CreateSession(int userId, string ip);
-        bool ValidateSession(int sessionId);
-        bool RemoveSession(int sessionId);
-        bool RemoveExpiredSessions();
-        Session? GetSession(int sessionId);
-        Session? GetSessionByUserId(int userId);
-    }
-
-    public class AuthService : IAuthService
-    {
-        public const string ROLE_ADMIN = "admin"; // Администратор
-        public const string ROLE_DIRECTOR = "dir"; // Начальник подразделения
-        public const string ROLE_ACCOUNTER = "acc"; // Учётчик
-
-        public Session? Login(string username, string password, out User? user, out int? error, string ip = "127.0.0.1")
-        {
-            user = new UserService().GetUser(username);
-            Session? result = null;
-            error = null;
-            if (user == null)
-            {
-                error = -1; // Юзер не существует
-            } else {
-                // Проверяем хэш пароля
-                var passwordHash = UserService.getPasswordHash(password);
-
-                if (user?.password_hash?.ToString() == passwordHash) {
-                    result = this.CreateSession(Convert.ToInt32(user.id), ip);
-                } else {
-                    error = -2; // Неверный пароль
-                }
-            }
-
-            return result;
-        }
-
-        public bool Logout(int sessionId)
-        {
-            return this.RemoveSession(sessionId);
-        }
-
-        public bool ValidateSession(int sessionId)
-        {
-            Session? session = this.GetSession(sessionId);
-            return session != null && session.expires_at > DateTime.Now;
-        }
-
-        public Session? CreateSession(int userId, string ip)
-        {
-            string sql = "INSERT INTO Sessions (user_id, created_at, expires_at, ip) VALUES (@user_id, NOW(), NOW() + INTERVAL '1 day', @ip) RETURNING id, user_id, created_at, expires_at, ip";
-            var parameters = new Dictionary<string, object>
-        {
-            { "@user_id", userId },
-            { "@ip", ip }
-        };
-            var result = DatabaseHelper.ExecuteQuery(sql, parameters);
-            return result.Count > 0 ? Session.FromDictionary(result[0]) : null;
-        }
-
-        public bool RemoveSession(int sessionId)
-        {
-            string sql = "DELETE FROM Sessions WHERE id = @id";
-            var parameters = new Dictionary<string, object> { { "@id", sessionId } };
-            return DatabaseHelper.ExecuteNonQuery(sql, parameters);
-        }
-
-        public bool RemoveExpiredSessions()
-        {
-            string sql = "DELETE FROM Sessions WHERE expires_at < NOW()";
-            return DatabaseHelper.ExecuteNonQuery(sql, null);
-        }
-
-        public Session? GetSession(int sessionId) 
-        {
-            string sql = "SELECT * FROM Sessions WHERE id = @id";
-            var parameters = new Dictionary<string, object> { { "@id", sessionId } };
-            var results = DatabaseHelper.ExecuteQuery(sql, parameters);
-
-            return results.Count > 0 ? Session.FromDictionary(results[0]) : null;
-        }
-
-        public Session? GetSessionByUserId(int userId) 
-        {
-            string sql = "SELECT * FROM Sessions WHERE user_id = @user_id AND expires_at > NOW()";
-            var parameters = new Dictionary<string, object> { { "@user_id", userId } };
-            var results = DatabaseHelper.ExecuteQuery(sql, parameters);
-
-            return results.Count > 0 ? Session.FromDictionary(results[0]) : null;
-        }
-
-    }
-
     public class AuthController : IController
     {
         public const string Controller = "auth";
@@ -124,13 +28,14 @@ namespace Auth
             Session? session = _authService.Login(login, password, out user, out error, ip);
             int? session_id = session?.id;
             string name = user?.login ?? "товарищ";
-            return new { 
+            return new
+            {
                 success = session_id > 0,
-                message = login == "" 
-                    ? "Логин не передан. Укажите его параметром login" 
+                message = login == ""
+                    ? "Логин не передан. Укажите его параметром login"
                     : (
-                        password == "" 
-                            ? "Пароль не передан. Укажите его параметром password" 
+                        password == ""
+                            ? "Пароль не передан. Укажите его параметром password"
                            : (error == -1 ? $"Пользователь \"{login}\" не существует" : (error == -2 ? "Неверный пароль" : $"Добро пожаловать, {name}!"))
                         ),
                 user,
@@ -261,30 +166,4 @@ namespace Auth
             return result;
         } 
     }
-
-    public class Session
-    {
-        public int id { get; set; }
-        public int user_id { get; set; }
-        public DateTime created_at { get; set; }
-        public DateTime expires_at { get; set; }
-        public string? ip { get; set; }
-
-        // Конструктор для создания объекта из результата запроса
-        public static Session FromDictionary(Dictionary<string, object?> row)
-        {
-            return new Session
-            {
-                id = Convert.ToInt32(row["id"]),
-                user_id = Convert.ToInt32(row["user_id"]),
-                created_at = Convert.ToDateTime(row["created_at"]),
-                expires_at = Convert.ToDateTime(row["expires_at"]),
-                ip = row["ip"]?.ToString()
-            };
-        }
-        public bool isValid()
-        {
-            return this.expires_at > DateTime.Now;
-        }
-    } 
 }

@@ -1,236 +1,129 @@
-// Контроллеры
+const notification = document.getElementById('notification');
+const roles = {
+    admin: 'Администратор',
+    dir: 'Начальник подразделения',
+    acc: 'Учётчик',
+};
+const roles_rp = {
+    admin: 'администратора',
+    dir: 'начальника подразделения',
+    acc: 'учётчика',
+};
 
-const AUTH_CONTROLLER = "auth";
 
-const USERS_CONTROLLER = "users";
-
-const MATERIALS_CONTROLLER = "materials";
-
-const SUPPLIERS_CONTROLLER = "suppliers";
-
-const SUPPLIES_CONTROLLER = "supplies";
-
-const SPENDS_CONTROLLER = "spend";
-
-const EQUIPMENT_CONTROLLER = "equipment";
-
-const REPORTS_CONTROLLER = "reports";
-
-const SYSTEM_CONTROLLER = "system";
-
-// Методы
-const METHOD_LOGIN = "login";
-
-const METHOD_LOGOUT = "logout";
-
-const METHOD_STATE = "state";
-
-const METHOD_ADD = "add";
-
-const METHOD_UPDATE = "update";
-
-const METHOD_DELETE = "delete";
-
-const METHOD_LIST = "list";
-
-const METHOD_GET = "get";
-
-const METHOD_CONSUMPTION = "consumption";
-
-const METHOD_AVERAGE_CONSUMPTION = "average_consumption";
-
-const METHOD_RESTS = "remaining";
-
-const METHOD_SUPPLIES = "supplies";
-
-const METHOD_GET_INTERFACE = "get-interface";
-
-const METHOD_CHECK_HEALTH = "check-health";
-
-const FIELD_SESSION_ID = 'session_id';
-
-class ApiService {
-    constructor(baseUrl) {
-        this.baseUrl = baseUrl;
+// Показ уведомления
+function showNotification(message) {
+    notification.innerText = message.trim();
+    if (notification.innerText !== "") {
+        notification.style.display = 'block';
+        notification.onclick = () => notification.style.display = 'none';
+        setTimeout(() => notification.style.display = 'none', 5000);
     }
 
-    async apiCall(controller, method, params = {}) {
-        const url = new URL(`${this.baseUrl}/api/v1/${controller}/${method}`);
-        Object.entries(params).forEach(([key, value]) => url.searchParams.append(key, value));
+}
 
-        const headers = {};
-        const session_id = localStorage.getItem(FIELD_SESSION_ID);
-        if (session_id) headers['X-Session-ID'] = session_id;
+// Запрос к API
+const api = new ApiService(window.location.origin);
 
-        try {
-            const response = await fetch(url, { headers });
-            const contentType = response.headers.get('Content-Type');
-            if (response.status === 401) {
-                localStorage.removeItem(FIELD_SESSION_ID);
+function showAllowedViews(allowedViews) {
+    document.getElementById('control-panel').innerHTML = `Панель управления ${roles_rp[user_role] || user_role}`;
+    document.getElementById('greetings').innerHTML = `Здравствуйте, ${user.login}!`;
+
+    let element = document.getElementById('dashboard-links'); // Контейнер для ссылок
+    element.innerHTML = ''; // Очищаем
+    for(let viewId of allowedViews) { // И генерируем разрешённые ссылки
+        let link = document.createElement('div');
+        link.attributes['data-id'] = viewId;
+        link.innerHTML = `<button class="dashboard-button" onclick="view('${viewId}View')">${window.views[viewId].title_main}</button>`;
+        element.appendChild(link);
+    }
+
+    // Открываем DashboardView
+    view("DashboardView");
+}
+
+function login(login, password) {
+    api.login(login, password)
+        .then(response => {
+            try {
+                if (response.success) {
+                    // Сохраняем данные пользователя и сессии
+                    window.user = response.user;
+                    window.session = response.session;
+                    window.session_id = response.session_id;
+                    window.user_role = response.user_role;
+                    window.allowed_controllers = response.allowed_controllers;
+                    window.allowed_views = response.allowed_views;
+
+                    // Сохраняем session_id в localStorage
+                    localStorage.setItem("session_id", response.session_id);
+
+                    // Обновляем видимость ссылок на дашборде
+                    showAllowedViews(response.allowed_views || []);
+                } else {
+                    // В случае ошибки авторизации отображаем сообщение
+                    showNotification(response.message || "Ошибка авторизации");
+                    view("LoginView");
+                }
+            } catch (err) {
+                // Обработка ошибок
+                showNotification(`Ошибка запроса: ${err.message}`);
                 view("LoginView");
-                return;
             }
-            if (contentType && contentType.includes('application/json')) {
-                const data = await response.json();
-                if (data.session_id) localStorage.setItem(FIELD_SESSION_ID, data.session_id);
-                if (data.message) showNotification(data.message);
-                return data;
-            }
-            return await response.text();
-        } catch (err) {
-            showNotification(`Ошибка запроса: ${err.message}`);
-            throw err;
-        }
+        });
+}
+
+function buttonLoginClick() {
+    const username = document.getElementById("lv-login").value.trim();
+    const password = document.getElementById("lv-password").value.trim();
+
+    if (!username || !password) {
+        showNotification("Введите логин и пароль");
+        return;
     }
 
-    // Методы auth
-    login(login, password) {
-        return this.apiCall(AUTH_CONTROLLER, METHOD_LOGIN, { login, password });
-    }
-    logout() {
-        return this.apiCall(AUTH_CONTROLLER, METHOD_LOGOUT);
-    }
-    loginState() {
-        return this.apiCall(AUTH_CONTROLLER, METHOD_STATE);
-    }
-    // Методы users
-    addUser(login, password, role) {
-        return this.apiCall(USERS_CONTROLLER, METHOD_ADD, { login, password, role });
-    }
-    updateUser(id, login, password, role) {
-        return this.apiCall(USERS_CONTROLLER, METHOD_UPDATE, { id, login, password, role });
-    }
-    deleteUser(id) {
-        return this.apiCall(USERS_CONTROLLER, METHOD_DELETE, { id });
-    }
-    listUsers() {
-        return this.apiCall(USERS_CONTROLLER, METHOD_LIST);
-    }
-    // Методы materials
-    addMaterial(name, unit) {
-        return this.apiCall(MATERIALS_CONTROLLER, METHOD_ADD, { name, unit });
-    }
+    login(username, password);
+}
 
-    updateMaterial(id, name, unit) {
-        return this.apiCall(MATERIALS_CONTROLLER, METHOD_UPDATE, { id, name, unit });
-    }
-
-    deleteMaterial(id) {
-        return this.apiCall(MATERIALS_CONTROLLER, METHOD_DELETE, { id });
-    }
-
-    getMaterial(id) {
-        return this.apiCall(MATERIALS_CONTROLLER, METHOD_GET, { id });
-    }
-
-    listMaterials() {
-        return this.apiCall(MATERIALS_CONTROLLER, METHOD_LIST);
-    }
-
-    // Методы suppliers
-    addSupplier(name, contactInfo) {
-        return this.apiCall(SUPPLIERS_CONTROLLER, METHOD_ADD, { name, contactInfo });
-    }
-
-    updateSupplier(id, name, contactInfo) {
-        return this.apiCall(SUPPLIERS_CONTROLLER, METHOD_UPDATE, { id, name, contactInfo });
-    }
-
-    deleteSupplier(id) {
-        return this.apiCall(SUPPLIERS_CONTROLLER, METHOD_DELETE, { id });
-    }
-
-    listSuppliers() {
-        return this.apiCall(SUPPLIERS_CONTROLLER, METHOD_LIST);
-    }
-
-    // Методы supplies
-    addSupply(name, contactInfo) {
-        return this.apiCall(SUPPLIES_CONTROLLER, METHOD_ADD, { name, contactInfo });
-    }
-
-    updateSupply(id, name, contactInfo) {
-        return this.apiCall(SUPPLIES_CONTROLLER, METHOD_UPDATE, { id, name, contactInfo });
-    }
-
-    deleteSupply(id) {
-        return this.apiCall(SUPPLIES_CONTROLLER, METHOD_DELETE, { id });
-    }
-
-    getSupply(id) {
-        return this.apiCall(SUPPLIES_CONTROLLER, METHOD_GET, { id });
-    }
-
-    listSupplies() {
-        return this.apiCall(SUPPLIES_CONTROLLER, METHOD_LIST);
-    }
+function buttonLogoutClick() {
+    api
+        .logout()
+        .then(response => {
+            view('LoginView')
+        });
+}
 
 
-    // Методы spend
-    addSpend(material_id, quantity, date) {
-        return this.apiCall(SPENDS_CONTROLLER, METHOD_ADD, { material_id, quantity, date });
-    }
+// Авторизация при старте
+async function initializeApp() {
+    // Отобразим доступные рабочие области
+    await doInitViews();
 
-    updateSpend(id, material_id, quantity, date) {
-        return this.apiCall(SPENDS_CONTROLLER, METHOD_UPDATE, { id, material_id, quantity, date });
-    }
+    // Привязка обработчика кнопки входа
+    document.getElementById("lb-enter").addEventListener("click", buttonLoginClick);
+    document.getElementById("logout-button").addEventListener("click", buttonLogoutClick);
 
-    deleteSpend(id) {
-        return this.apiCall(SPENDS_CONTROLLER, METHOD_DELETE, { id });
-    }
+    // Проверка состояния авторизации
+    const session_id = localStorage.getItem('session_id');
+    if (session_id) {
+        api.loginState() // Отправляем на сервер запрос состояния
+            .then(state => { // При получении открываем либо дашборд-меню, либо таки обратно панель логина
+                if (state.valid) {
+                    window.user = state.user;
+                    window.session = state.session;
+                    window.session_id = state.session_id;
+                    window.user_role = state.user_role;
+                    window.allowed_controllers = state.allowed_controllers;
+                    window.allowed_views = state.allowed_views;
 
-    getSpend(id) {
-        return this.apiCall(SPENDS_CONTROLLER, METHOD_GET, { id });
-    }
-
-    listSpends() {
-        return this.apiCall(SPENDS_CONTROLLER, METHOD_LIST);
-    }
-
-    // Методы equipment
-    addEquipment(name, description) {
-        return this.apiCall(EQUIPMENT_CONTROLLER, METHOD_ADD, { name, description });
-    }
-
-    updateEquipment(id, name, description) {
-        return this.apiCall(EQUIPMENT_CONTROLLER, METHOD_UPDATE, { id, name, description });
-    }
-
-    deleteEquipment(id) {
-        return this.apiCall(EQUIPMENT_CONTROLLER, METHOD_DELETE, { id });
-    }
-
-    getEquipment(id) {
-        return this.apiCall(EQUIPMENT_CONTROLLER, METHOD_GET, { id });
-    }
-
-    listEquipment() {
-        return this.apiCall(EQUIPMENT_CONTROLLER, METHOD_LIST);
-    }
-
-    // Методы reports
-    consumption(start, end) {
-        return this.apiCall(REPORTS_CONTROLLER, METHOD_CONSUMPTION, { start, end });
-    }
-
-    averageConsumption(start, end) {
-        return this.apiCall(REPORTS_CONTROLLER, METHOD_AVERAGE_CONSUMPTION, { start, end });
-    }
-
-    remaining() {
-        return this.apiCall(REPORTS_CONTROLLER, METHOD_RESTS);
-    }
-
-    supplies() {
-        return this.apiCall(REPORTS_CONTROLLER, METHOD_SUPPLIES);
-    }
-
-    // Методы system
-    getSystemInterface() {
-        return this.apiCall(SYSTEM_CONTROLLER, METHOD_GET_INTERFACE);
-    }
-
-    checkHealth() {
-        return this.apiCall(SYSTEM_CONTROLLER, METHOD_CHECK_HEALTH);
+                    showAllowedViews(state.allowed_views || []);
+                    return;
+                }
+                view('LoginView');
+            });
+    } else {
+        view('LoginView');
     }
 }
+// Привязка стартовых скриптов
+document.addEventListener('DOMContentLoaded', initializeApp);

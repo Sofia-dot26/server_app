@@ -2,6 +2,7 @@ const breadcrumbs = [];
 
 /**
  * Инициализация рабочих панелей.
+ * Загружает с сервера список панелей и добавляет их в DOM-структуру приложения
  * @returns {Promise<void>}
  */
 async function doInitViews() {
@@ -23,7 +24,7 @@ async function doInitViews() {
 }
 
 /**
- * код панелей согласно данным и шаблону, и устанавливает их в переданный контейнер
+ * Формирует код панелей согласно данным и шаблону, и устанавливает их в переданный контейнер
  * @param views
  * @param template
  * @param container_id
@@ -108,6 +109,7 @@ async function submitForm(viewShortName, id = null) {
             // Возвращаемся назад при успехе
             goBack();
         } else {
+            // Выводим сообщение об ошибке, если оно есть
             // alert(result?.message || "Произошла ошибка");
         }
     } catch (error) {
@@ -120,6 +122,8 @@ async function submitForm(viewShortName, id = null) {
 }
 
 /**
+ * Выбор из справочника осуществляется путём открытия нужного view в режиме выбора.
+ * Так станут недоступными удаление и редактирование элементов (создание останется)
  * Выбранный элемент будет отображён на форме выбора
  * @param controller
  * @param fieldName
@@ -189,7 +193,12 @@ async function makeForm(viewShortName, id = null, object = null) {
             window.objectObject = object;
             window.lastController = viewShortName;
             inputHtml = `<button class="button-chose-dict${selectedId ? " selected" : ""}" onclick="selectFromDictionary('${fieldParams.controller}', '${fieldName}', '${object ? object[fieldName] || "" : ""}')">${selectedName}</button>
-<input type="hidden" id="input-${fieldName}" name="${fieldName}" value="${selectedId}" />`;
+<input type="hidden" id="input-${fieldName}" name="${fieldName}" value="${selectedId}" />
+`;
+            // После использования переменная обнуляется, чтобы не повлиять на редактирование в иных случаях.
+            /*if (window.selectedValues && window.selectedValues.hasOwnProperty(fieldName)) {
+                delete window.selectedValues[fieldName];
+            }*/
         } else {
             inputHtml = `<input type="${fieldParams.type}" id="input-${fieldName}" name="${fieldName}" value="${(object ? (object[fieldName] || '') : '') || selectedId || fieldParams['default_value'] || ''}" />`;
         }
@@ -224,7 +233,10 @@ function view(name, params = {}) {
     }
 }
 
-
+/**
+ * Обеспечивает своеобразную историю навигации внутри приложения.
+ * Визуальное отображение отключено, чтобы не перегружать дизайн, но при желании можно и включить.
+ */
 function updateBreadcrumbs() {
     const container = document.getElementById('breadcrumbs');
     if (!container) return;
@@ -261,7 +273,7 @@ function goBack() {
 }
 
 /**
- * Создаёт таблицу из переданных данных.
+ * Создаёт злую и красивую таблицу из переданных данных.
  * Таблица поддерживает поиск с подсветкой, сортировку по колонкам, добавление элементов, редактирование, удаление, выбор
  * @param data
  * @param containerId
@@ -279,7 +291,7 @@ function createTable(data, containerId, headers, actions, viewShortName) {
     // Очищаем контейнер
     container.innerHTML = '';
 
-    // Создаём поле для добавления
+    // Создаём поле для добавления, если у нас форма не в режиме выбора из справочника
     if (actions.add && !window.dictionarySelectMode) {
         const addButton = document.createElement('button');
         addButton.innerText = actions.add_text || 'Добавить';
@@ -504,6 +516,7 @@ function createTable(data, containerId, headers, actions, viewShortName) {
 
 /**
  * Выполняет автоматические действия при открытии панели.
+ * Удобно для подгрузки в неё данных (что и делается) и другой мелкой автоматизации
  * @param viewName
  * @param params
  * @returns {Promise<void>}
@@ -519,6 +532,7 @@ async function onOpenView(viewName, params) {
                 add_text: `Добавить ${title}`,
             };
 
+            // Делаем через отрицание, потому что таких меньше, по сути только отчёты нельзя редактировать
             if (window.views[viewShortName].viewMode) {
                 actions.viewMode = window.views[viewShortName].viewMode;
             }

@@ -70,12 +70,14 @@ class ApiService {
                 view("LoginView");
                 return;
             }
+
             if (contentType && contentType.includes('application/json')) {
                 const data = await response.json();
                 if (data.session_id) localStorage.setItem(FIELD_SESSION_ID, data.session_id);
                 if (data.message) showNotification(data.message);
                 return data;
             }
+
             return await response.text();
         } catch (err) {
             showNotification(`Ошибка запроса: ${err.message}`);
@@ -87,25 +89,32 @@ class ApiService {
     login(login, password) {
         return this.apiCall(AUTH_CONTROLLER, METHOD_LOGIN, { login, password });
     }
+
     logout() {
         return this.apiCall(AUTH_CONTROLLER, METHOD_LOGOUT);
     }
+
     loginState() {
         return this.apiCall(AUTH_CONTROLLER, METHOD_STATE);
     }
+
     // Методы users
     addUser(login, password, role) {
         return this.apiCall(USERS_CONTROLLER, METHOD_ADD, { login, password, role });
     }
+
     updateUser(id, login, password, role) {
         return this.apiCall(USERS_CONTROLLER, METHOD_UPDATE, { id, login, password, role });
     }
+
     deleteUser(id) {
         return this.apiCall(USERS_CONTROLLER, METHOD_DELETE, { id });
     }
+
     listUsers() {
         return this.apiCall(USERS_CONTROLLER, METHOD_LIST);
     }
+
     // Методы materials
     addMaterial(name, unit) {
         return this.apiCall(MATERIALS_CONTROLLER, METHOD_ADD, { name, unit });
